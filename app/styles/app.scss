@@ -7,4 +7,9 @@
 	>span, >span>i, >strong {
 		vertical-align: middle;
 	}
+	>a {
+		color: inherit;
+
+		text-decoration: none;
+	}
 }
