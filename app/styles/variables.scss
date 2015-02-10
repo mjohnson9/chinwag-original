@@ -4,13 +4,15 @@ $grey: map-get($color-grey, "500");
 $grey-light: map-get($color-grey, "100");
 $grey-dark: map-get($color-grey, "700");
 
-$primary-color: map-get($color-green, "500");
-$primary-color-light: map-get($color-green, "100");
-$primary-color-dark: map-get($color-green, "700");
+$primary-color-palette: $color-green;
+$primary-color: map-get($primary-color-palette, "500");
+$primary-color-light: map-get($primary-color-palette, "100");
+$primary-color-dark: map-get($primary-color-palette, "700");
 
-$accent-color: map-get($color-orange, "A200");
-$accent-color-light: map-get($color-orange, "A100");
-$accent-color-dark: map-get($color-orange, "A400");
+$accent-color-palette: $color-orange;
+$accent-color: map-get($accent-color-palette, "A200");
+$accent-color-light: map-get($accent-color-palette, "A100");
+$accent-color-dark: map-get($accent-color-palette, "A400");
 
 $text-color-no-transparency: #000000;
 $text-color-primary: rgba($text-color-no-transparency, 0.87);
