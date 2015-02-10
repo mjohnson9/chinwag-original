@@ -1,0 +1,20 @@
+.face {
+	border-radius: 30px;
+	border: 1px solid #ddd;
+	width: 48px;
+	margin: 16px;
+}
+
+.conversations {
+	>a {
+		text-decoration: none;
+
+		color: $text-color-primary;
+
+		:active {
+			background-color: $grey-light;
+
+			transition: background-color 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+		}
+	}
+}

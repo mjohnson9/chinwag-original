@@ -6,6 +6,9 @@ var Router = Ember.Router.extend({
 });
 
 Router.map(function() {
+	this.route('settings');
+
+	this.resource('chat', {path: '/chat/:jid'});
 });
 
 export default Router;
