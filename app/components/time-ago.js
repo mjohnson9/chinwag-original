@@ -25,7 +25,8 @@ function nextFromNowChange(diff) {
 	} else if(diff < 22*hour) {
 		return hour - diff % hour;
 	} else {
-		throw "can not calculate next change for "+diff+"ms";
+		Ember.Logger.error("Unable to calculate next fromNow change for "+diff+"ms. Using 5 seconds.");
+		return 5*second;
 	}
 }
 
@@ -37,8 +38,10 @@ export default Ember.Component.extend({
 	
 	startClock: function() {
 		this.cancelClock();
+
 		var createdAt = this.get("createdAt");
 		if(createdAt == null) {
+			this.set("calculatedTime", null);
 			return;
 		}
 
@@ -48,49 +51,38 @@ export default Ember.Component.extend({
 
 	clock: function() {
 		var calculatedTime = this.get("calculatedTime");
-		if(calculatedTime === undefined) {
+		if(calculatedTime === null) {
 			return;
 		}
 
 		var diff = -(calculatedTime.diff());
 		var nextChange; // how long until this should change
-
-		console.groupCollapsed("[time-ago]", "time:", calculatedTime.format());
-		console.log("diff:", diff);
 		
 		if(diff < diffBeforeFromNow) {
-			console.log("method:", "now");
 			this.set("timeAgo", "now");
 			nextChange = diffBeforeFromNow-diff;
 		} else if(diff < diffBeforeTime) {
-			console.log("method:", "fromNow");
 			this.set("timeAgo", calculatedTime.fromNow(true));
 			nextChange = Math.min(diffBeforeTime-diff, nextFromNowChange(diff));
 		} else if(diff < diffBeforeShortDatetime) {
-			console.log("method:", "time");
 			this.set("timeAgo", calculatedTime.format("LT"));
 			nextChange = diffBeforeShortDatetime-diff;
 		} else if(diff < diffBeforeLongDatetime) {
-			console.log("method:", "short datetime");
 			this.set("timeAgo", calculatedTime.format("ddd, LT"));
 			nextChange = diffBeforeLongDatetime-diff;
 		} else if(diff < diffBeforeFullDatetime) {
-			console.log("method:", "long datetime");
 			this.set("timeAgo", calculatedTime.format("MMM D, LT"));
 			nextChange = diffBeforeFullDatetime-diff;
 		} else {
-			console.log("method:", "full datetime");
 			this.set("timeAgo", calculatedTime.format("l LT"));
 			nextChange = diffBeforeFullDatetime-diff;
 		}
 
-		console.log("timeAgo:", this.get("timeAgo"));
-
 		if(nextChange >= 0) {
-			console.info("Updating in", (nextChange+50)+"ms", "("+moment.duration(nextChange+50).humanize()+")");
+			Ember.Logger.debug("[time-ago]", calculatedTime.format(), "Updating in "+(nextChange+50)+"ms");
 			this.set("timer", Ember.run.later(this, this.clock, nextChange+50));
 		} else {
-			console.info("Never updating again");
+			Ember.Logger.debug("[time-ago]", calculatedTime.format(), "Never updating again");
 		}
 
 		console.groupEnd();
@@ -99,6 +91,7 @@ export default Ember.Component.extend({
 	cancelClock: function() {
 		var timer = this.get("timer");
 		if(timer !== null) {
+			Ember.Logger.debug("[time-ago]", this.get("calculatedTime").format(), "Timer cancelled");
 			Ember.run.cancel(timer);
 		}
 	}.on("willDestroyElement")
