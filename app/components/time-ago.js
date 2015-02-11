@@ -8,8 +8,8 @@ var hour = minute*60;
 var day = hour*24;
 
 var diffBeforeFromNow = 45*second; // 30 seconds
-var diffBeforeTime = 6*hour; // 6 hours
-var diffBeforeDatetime = 20*hour; // 20 hours
+var diffBeforeTime = 1*hour; // 1 hour
+var diffBeforeDatetime = 22*hour; // 22 hours
 
 function nextFromNowChange(diff) {
 	if(diff < 45*second) {
@@ -23,7 +23,7 @@ function nextFromNowChange(diff) {
 	} else if(diff < 22*hour) {
 		return hour - diff % hour;
 	} else {
-		throw "can not yet calculate next change for "+diff+"ms";
+		throw "can not calculate next change for "+diff+"ms";
 	}
 }
 

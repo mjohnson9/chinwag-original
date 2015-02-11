@@ -23,7 +23,7 @@ var day = hour*24;
 
 var diffBeforeFromNow = 45*second; // 30 seconds
 var diffBeforeTime = 6*hour; // 6 hours
-var diffBeforeDatetime = 20*hour; // 20 hours
+var diffBeforeDatetime = 22*hour; // 22 hours
 
 var actionTime = 5*second;
 
