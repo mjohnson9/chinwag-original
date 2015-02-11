@@ -38,7 +38,6 @@
     "glob": "^4.0.5"
   },
   "dependencies": {
-    "ember-cli-material-design-icons": "^0.3.0",
     "ember-git-version": "0.0.1"
   }
 }

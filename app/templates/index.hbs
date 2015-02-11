@@ -1,15 +1,17 @@
 {{#paper-list classNames="conversations"}}
 	{{#each}}
-		{{#link-to "chat" this}}
+		{{#link-to "conversation" this}}
 			{{#paper-item classNames="conversation"}}
 				{{#paper-tile-left}}
-					<img {{bind-attr src=avatar_url alt=name}} class="face">
+					<img {{bind-attr alt=name}} class="face">
 				{{/paper-tile-left}}
 
 				{{#paper-tile-content}}
 					<h3>{{name}}</h3>
-					<h4>{{jid}}</h4>
-					<p>{{last_message}}</p>
+					<h4>{{id}}</h4>
+					{{#if lastMessage}}
+						<p>{{lastMessage.message}}</p>
+					{{/if}}
 				{{/paper-tile-content}}
 			{{/paper-item}}
 		{{/link-to}}

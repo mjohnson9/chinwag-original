@@ -1,12 +1,11 @@
 @import "./variables.scss";
+@import "node_modules/ember-paper/addon/styles/scss/main";
 
+/*! xmpp-client */
 @import "./index.scss";
 
 // Align the nav logo and text to the middle so that they don't look oddly offset
 .paper-drawer > .logo {
-	>span, >span>i, >strong {
-		vertical-align: middle;
-	}
 	>a {
 		color: inherit;
 
