@@ -2,7 +2,7 @@
 
 module.exports = function(environment) {
 	var ENV = {
-		modulePrefix: 'xmpp-client',
+		modulePrefix: 'chinwag',
 		environment: environment,
 		baseURL: '/',
 		locationType: 'auto',
