@@ -44,7 +44,7 @@ export default Ember.Component.extend({
 		var nextChange; // how long until this should change
 		
 		if(diff < diffBeforeFromNow) {
-			this.set("timeAgo", "Now");
+			this.set("timeAgo", "now");
 			nextChange = diffBeforeFromNow-diff;
 		} else if(diff < diffBeforeTime) {
 			this.set("timeAgo", this.get("calculatedTime").fromNow(true));
