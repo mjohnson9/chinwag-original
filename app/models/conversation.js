@@ -14,8 +14,8 @@ var Conversation = DS.Model.extend({
 
 Conversation.reopenClass({
 	FIXTURES: [
-		{id: "test1@nightexcessive.us", contact: "test1@nightexcessive.us", messages: ["t1h1", "t1h2", "t1h3", "t1h4", "t1h5"]},
-		{id: "test2@nightexcessive.us", contact: "test2@nightexcessive.us", messages: ["t2h1", "t2h2", "t2h3", "t2h4", "t2h5"]},
+		{id: "test1@nightexcessive.us", contact: "test1@nightexcessive.us", messages: ["t1h1", "t1h2", "t1h3", "t1h4", "t1h5", "t1h6"]},
+		{id: "test2@nightexcessive.us", contact: "test2@nightexcessive.us", messages: ["t2h1", "t2h2", "t2h3", "t2h4", "t2h5", "t2h6"]},
 	]
 });
 

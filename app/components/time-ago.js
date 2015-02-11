@@ -11,6 +11,7 @@ var diffBeforeFromNow = 45*second; // 30 seconds
 var diffBeforeTime = 1*hour; // 1 hour
 var diffBeforeShortDatetime = 22*hour; // 22 hours
 var diffBeforeLongDatetime = 4*day; // 4 days
+var diffBeforeFullDatetime = 345*day; // 345 days
 
 function nextFromNowChange(diff) {
 	if(diff < 45*second) {
@@ -73,17 +74,21 @@ export default Ember.Component.extend({
 			console.log("method:", "short datetime");
 			this.set("timeAgo", calculatedTime.format("ddd, LT"));
 			nextChange = diffBeforeLongDatetime-diff;
-		} else {
+		} else if(diff < diffBeforeFullDatetime) {
 			console.log("method:", "long datetime");
 			this.set("timeAgo", calculatedTime.format("MMM D, LT"));
-			nextChange = -1;
+			nextChange = diffBeforeFullDatetime-diff;
+		} else {
+			console.log("method:", "full datetime");
+			this.set("timeAgo", calculatedTime.format("l LT"));
+			nextChange = diffBeforeFullDatetime-diff;
 		}
 
 		console.log("timeAgo:", this.get("timeAgo"));
 
 		if(nextChange >= 0) {
-			console.info("Updating in", (nextChange+500)+"ms", "("+moment.duration(nextChange+500).humanize()+")");
-			this.set("timer", Ember.run.later(this, this.clock, nextChange+500));
+			console.info("Updating in", (nextChange+50)+"ms", "("+moment.duration(nextChange+50).humanize()+")");
+			this.set("timer", Ember.run.later(this, this.clock, nextChange+50));
 		} else {
 			console.info("Never updating again");
 		}
