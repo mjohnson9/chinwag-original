@@ -3,11 +3,11 @@
 		{{#link-to "conversation" this}}
 			{{#paper-item classNames="conversation"}}
 				{{#paper-tile-left}}
-					<img {{bind-attr alt=name}} class="face">
+					<img {{bind-attr src=contact.avatar alt=name}} class="face">
 				{{/paper-tile-left}}
 
 				{{#paper-tile-content}}
-					<h3>{{name}}</h3>
+					<h3>{{contact.name}}</h3>
 					<h4>{{id}}</h4>
 					{{#if lastMessage}}
 						<p>{{lastMessage.message}}</p>

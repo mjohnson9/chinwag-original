@@ -1,13 +1,18 @@
 import DS from "ember-data";
+import moment from "moment";
 
 var Message = DS.Model.extend({
-	conversation: DS.belongsTo('conversation'),
+	conversation: DS.belongsTo('conversation', {async: true}),
 
 	from: DS.attr('string'),
 	to: DS.attr('string'),
 
 	time: DS.attr('date'),
-	message: DS.attr('string')
+	message: DS.attr('string'),
+
+	timeFormatted: function() {
+		return moment(this.get("time")).format("l LT");
+	}.property("time")
 });
 
 Message.reopenClass({

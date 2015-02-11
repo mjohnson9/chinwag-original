@@ -2,11 +2,12 @@
 	{{#each messages}}
 		{{#paper-item}}
 			{{#paper-tile-left}}
-				<img {{bind-attr alt=from}} class="face">
+				<img {{bind-attr src=conversation.contact.avatar alt=from}} class="face">
 			{{/paper-tile-left}}
 
 			{{#paper-tile-content}}
-				<p>{{message}}</p>
+				<h4>{{message}}</h4>
+				<p {{bind-attr title=timeFormatted}}>{{time-ago createdAt=time}}</p>
 			{{/paper-tile-content}}
 		{{/paper-item}}
 	{{else}}
