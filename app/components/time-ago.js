@@ -36,15 +36,25 @@ export default Ember.Component.extend({
 	
 	startClock: function() {
 		this.cancelClock();
-		this.set("calculatedTime", moment(this.get("createdAt")));
+		var createdAt = this.get("createdAt");
+		if(createdAt == null) {
+			return;
+		}
+
+		this.set("calculatedTime", moment(createdAt));
 		this.clock();
 	}.on("didInsertElement").observes("createdAt"),
 
 	clock: function() {
-		var diff = -(this.get("calculatedTime").diff());
+		var calculatedTime = this.get("calculatedTime");
+		if(calculatedTime === undefined) {
+			return;
+		}
+
+		var diff = -(calculatedTime.diff());
 		var nextChange; // how long until this should change
 
-		console.groupCollapsed("time:", this.get("calculatedTime").format());
+		console.groupCollapsed("[time-ago]", "time:", calculatedTime.format());
 		console.log("diff:", diff);
 		
 		if(diff < diffBeforeFromNow) {
@@ -53,19 +63,19 @@ export default Ember.Component.extend({
 			nextChange = diffBeforeFromNow-diff;
 		} else if(diff < diffBeforeTime) {
 			console.log("method:", "fromNow");
-			this.set("timeAgo", this.get("calculatedTime").fromNow(true));
+			this.set("timeAgo", calculatedTime.fromNow(true));
 			nextChange = Math.min(diffBeforeTime-diff, nextFromNowChange(diff));
 		} else if(diff < diffBeforeShortDatetime) {
 			console.log("method:", "time");
-			this.set("timeAgo", this.get("calculatedTime").format("LT"));
+			this.set("timeAgo", calculatedTime.format("LT"));
 			nextChange = diffBeforeShortDatetime-diff;
 		} else if(diff < diffBeforeLongDatetime) {
 			console.log("method:", "short datetime");
-			this.set("timeAgo", this.get("calculatedTime").format("ddd, LT"));
+			this.set("timeAgo", calculatedTime.format("ddd, LT"));
 			nextChange = diffBeforeLongDatetime-diff;
 		} else {
 			console.log("method:", "long datetime");
-			this.set("timeAgo", this.get("calculatedTime").format("MMM D, LT"));
+			this.set("timeAgo", calculatedTime.format("MMM D, LT"));
 			nextChange = -1;
 		}
 
