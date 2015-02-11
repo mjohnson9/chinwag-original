@@ -9,7 +9,8 @@ var day = hour*24;
 
 var diffBeforeFromNow = 45*second; // 30 seconds
 var diffBeforeTime = 1*hour; // 1 hour
-var diffBeforeDatetime = 22*hour; // 22 hours
+var diffBeforeShortDatetime = 22*hour; // 22 hours
+var diffBeforeLongDatetime = 4*day; // 4 days
 
 function nextFromNowChange(diff) {
 	if(diff < 45*second) {
@@ -42,24 +43,42 @@ export default Ember.Component.extend({
 	clock: function() {
 		var diff = -(this.get("calculatedTime").diff());
 		var nextChange; // how long until this should change
+
+		console.groupCollapsed("time:", this.get("calculatedTime").format());
+		console.log("diff:", diff);
 		
 		if(diff < diffBeforeFromNow) {
+			console.log("method:", "now");
 			this.set("timeAgo", "now");
 			nextChange = diffBeforeFromNow-diff;
 		} else if(diff < diffBeforeTime) {
+			console.log("method:", "fromNow");
 			this.set("timeAgo", this.get("calculatedTime").fromNow(true));
-			nextChange = nextFromNowChange(diff);
-		} else if(diff < diffBeforeDatetime) {
+			nextChange = Math.min(diffBeforeTime-diff, nextFromNowChange(diff));
+		} else if(diff < diffBeforeShortDatetime) {
+			console.log("method:", "time");
 			this.set("timeAgo", this.get("calculatedTime").format("LT"));
-			nextChange = diffBeforeDatetime-diff;
+			nextChange = diffBeforeShortDatetime-diff;
+		} else if(diff < diffBeforeLongDatetime) {
+			console.log("method:", "short datetime");
+			this.set("timeAgo", this.get("calculatedTime").format("ddd, LT"));
+			nextChange = diffBeforeLongDatetime-diff;
 		} else {
-			this.set("timeAgo", this.get("calculatedTime").format("l LT"));
+			console.log("method:", "long datetime");
+			this.set("timeAgo", this.get("calculatedTime").format("MMM D, LT"));
 			nextChange = -1;
 		}
 
+		console.log("timeAgo:", this.get("timeAgo"));
+
 		if(nextChange >= 0) {
+			console.info("Updating in", (nextChange+500)+"ms", "("+moment.duration(nextChange+500).humanize()+")");
 			this.set("timer", Ember.run.later(this, this.clock, nextChange+500));
+		} else {
+			console.info("Never updating again");
 		}
+
+		console.groupEnd();
 	},
 
 	cancelClock: function() {
