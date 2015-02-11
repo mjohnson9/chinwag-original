@@ -1,7 +1,7 @@
-{{#paper-list classNames="conversations"}}
+{{#paper-list classNames="conversation-list"}}
 	{{#each}}
 		{{#link-to "conversation" this}}
-			{{#paper-item classNames="conversation"}}
+			{{#paper-item classNames="conversation-item"}}
 				{{#paper-tile-left}}
 					<img {{bind-attr src=contact.avatar alt=name}} class="face">
 				{{/paper-tile-left}}
