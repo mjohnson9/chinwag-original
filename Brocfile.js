@@ -17,7 +17,7 @@ var app = new EmberApp();
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
-app.import(app.bowerDirectory + '/moment/moment.js');
+app.import(app.bowerDirectory + '/moment/min/moment-with-locales.js');
 app.import(app.bowerDirectory + '/ember-cli-moment-shim/moment-shim.js', {
 	exports: {
 		moment: ['default']
