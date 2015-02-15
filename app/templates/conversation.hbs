@@ -1,24 +1,14 @@
 <div class="conversation">
-	{{#paper-list class="message-list"}}
+	<div class="message-list">
 		{{#each messages}}
-			{{#paper-item}}
-				{{#paper-tile-left}}
-					<img {{bind-attr src=conversation.contact.avatar alt=from}} class="face">
-				{{/paper-tile-left}}
+			{{#paper-content class="message md-whiteframe-z1"}}
+				<img {{bind-attr src=conversation.contact.avatar alt=from}} class="face">
 
-				{{#paper-tile-content}}
-					<h4>{{message}}</h4>
-					<p {{bind-attr title=timeFormatted}}>{{time-ago createdAt=time}}</p>
-				{{/paper-tile-content}}
-			{{/paper-item}}
-		{{else}}
-			{{#paper-item}}
-				{{#paper-tile-content}}
-					<h3>No messages!</h3>
-				{{/paper-tile-content}}
-			{{/paper-item}}
+				<h4>{{message}}</h4>
+				<div class="time" {{bind-attr title=timeFormatted}}>{{time-ago createdAt=time}}</div>
+			{{/paper-content}}
 		{{/each}}
-	{{/paper-list}}
+	</div>
 	<form {{action "submit" on="submit"}} class="message-form">
 		<md-input-group class="md-default-theme">
 			{{input class="message-field" type="text" placeholder="Send message" value=messageToSend}}

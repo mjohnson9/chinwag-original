@@ -1,13 +1,23 @@
-{{#paper-sidenav}}
-	{{#paper-drawer}}
-		<h1 class="logo"><img src="/favicon-96x96.png" height="30"/>  <strong>Chinwag</strong></h1>
-		<nav class="sidenav-nav">
-			<ul>
-				<li>{{#link-to "settings"}}Settings{{/link-to}}</li>
-			</ul>
-		</nav>
-	{{/paper-drawer}}
-	{{#paper-content  classNames="sidenav-static-content"}}
+{{#paper-nav-container classNames="ember-app"}}
+	{{#paper-sidenav classNames="md-sidenav-left md-whiteframe-z2" flex-layout="column" flex=true}}
+		{{#paper-toolbar}}
+			<div class="md-toolbar-tools">
+				<div class="logo">
+					<img src="/favicon-96x96.png"/>&nbsp;&nbsp;<strong>Chinwag</strong>
+				</div>
+			</div>
+		{{/paper-toolbar}}
+
+		{{#paper-content}}
+			<nav class="sidenav">
+				<ul>
+					<li>{{#link-to "settings"}}Settings{{/link-to}}</li>
+				</ul>
+			</nav>
+		{{/paper-content}}
+	{{/paper-sidenav}}
+
+	{{#paper-content flex-layout="column" flex=true}}
 		{{outlet}}
 	{{/paper-content}}
-{{/paper-sidenav}}
+{{/paper-nav-container}}
