@@ -1,2 +1,4 @@
 # http://www.robotstxt.org
+# Disallow all crawlers while we're in development
 User-agent: *
+Disallow: /
