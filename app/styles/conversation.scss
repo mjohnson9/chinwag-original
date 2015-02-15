@@ -1,0 +1,10 @@
+.message-list {
+	overflow-y: scroll;
+	height: 100%;
+
+	.message {
+		.time {
+			@extend .text-hint;
+		}
+	}
+}
