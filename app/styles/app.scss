@@ -1,27 +1,11 @@
 @import "./variables.scss";
-//@import "node_modules/ember-paper/addon/styles/scss/main";
+@import "node_modules/ember-paper/addon/styles/scss/main";
 
 /*!
  * Chinwag CSS 
  *
  * Copyright 2015 Michael Johnson
  */
-@import "./sidenav.scss";
-@import "./index.scss";
-@import "./conversation.scss";
-
-// Align the logo and text to the middle so that they don't look oddly offset
-.md-toolbar-tools > .logo {
-	>img {
-		height: 30px;
-		vertical-align: middle;
-	}
-
-	>strong {
-		vertical-align: middle;
-	}
-}
-
 .text-primary {
 	color: $text-color-primary;
 }
@@ -33,3 +17,7 @@
 .text-hint {
 	color: $text-color-hint;
 }
+
+@import "./sidenav.scss";
+@import "./index.scss";
+@import "./conversation.scss";

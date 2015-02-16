@@ -39,5 +39,6 @@
 		}
 	],
 	"start_url": "https:\/\/chinwag.nightexcessive.us\/",
-	"display": "standalone"
+	"display": "standalone",
+	"orientation": "portrait"
 }

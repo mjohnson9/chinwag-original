@@ -23,8 +23,17 @@ body {
 	padding: 0;
 }
 
-.logo{
-	font-size:24px;
+// Align the logo and text to the middle so that they don't look oddly offset
+.md-toolbar-tools > .logo {
+	font-size: 24px;
+
+	>img {
+		vertical-align: middle;
+	}
+
+	>strong {
+		vertical-align: middle;
+	}
 }
 
 .sidenav ul {
@@ -33,15 +42,17 @@ body {
 	list-style-type: none;
 }
 .sidenav ul li > a {
+	@extend .text-primary;
+
 	display: block;
 	font-size: 14px;
 	text-decoration: none;
-	color: #424242;
 	font-weight: 700;
 	padding: 1.1em 1.6em;
 }
+
 .sidenav ul li a:hover {
-	background-color: #e0e0e0;
+	background-color: map-get($color-grey, "300");
 }
 
 .nav-button {
