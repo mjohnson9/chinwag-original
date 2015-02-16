@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html manifest="manifest.appcache">
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -32,13 +32,13 @@
 
 		{{content-for 'head-footer'}}
 	</head>
-	<body>
+	<body manifest="/manifest.appcache">
 		<noscript>JavaScript is required for this page to work. Please enable JavaScript in your browser.</noscript>
 
 		{{content-for 'body'}}
 
-		<script src="assets/vendor.js"></script>
-		<script src="assets/chinwag.js"></script>
+		<script src="assets/vendor.js" defer></script>
+		<script src="assets/chinwag.js" defer></script>
 
 		{{content-for 'body-footer'}}
 	</body>
