@@ -18,4 +18,4 @@ echo "Moving in new live code..."
 mv -v dist/* /srv/www/xmpp-client/
 
 echo "Compressing all live code..."
-find /srv/www/xmpp-client/ -type f -exec bash -c 'PLAINFILE={};GZIPPEDFILE={}.gz;gzip --best -c "$PLAINFILE" > "$GZIPPEDFILE";' \;
+find /srv/www/xmpp-client/ -type f -not -iname '*.gz' -print0 | xargs -0 --max-procs="$(nproc)" -- gzip --best --keep --verbose --
