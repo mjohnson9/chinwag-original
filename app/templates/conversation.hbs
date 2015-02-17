@@ -8,7 +8,7 @@
 <div class="conversation">
 	{{#paper-list class="message-list"}}
 		{{#each messages}}
-			{{#paper-item}}
+			{{#paper-item class="message"}}
 				{{#paper-tile-left}}
 					<img {{bind-attr src=conversation.contact.avatar alt=from}} class="face">
 				{{/paper-tile-left}}
