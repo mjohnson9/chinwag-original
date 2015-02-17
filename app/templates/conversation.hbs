@@ -10,7 +10,7 @@
 		{{#each messages}}
 			{{#paper-item class="message"}}
 				{{#paper-tile-left}}
-					<img {{bind-attr src=conversation.contact.avatar alt=from}} class="face">
+					<img {{bind-attr src=conversation.contact.avatar alt=from title=conversation.contact.name}} class="face">
 				{{/paper-tile-left}}
 
 				{{#paper-tile-content}}
