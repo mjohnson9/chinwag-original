@@ -5,15 +5,17 @@ import config from './config/environment';
 
 window.addEventListener('load', function() {
 	if(window.applicationCache != null) {
+		var reloadPage = function() {
+			window.location.reload();
+		};
 		window.applicationCache.addEventListener('updateready', function() {
 			if(window.applicationCache.status === window.applicationCache.UPDATEREADY) {
-				window.applicationCache.swapCache();
-				window.location.reload();
+				return reloadPage();
 			}
 		}, false);
 		window.applicationCache.addEventListener('obsolete', function() {
 			if(window.applicationCache.status === window.applicationCache.OBSOLETE) {
-				window.location.reload();
+				return reloadPage();
 			}
 		}, false);
 	}
