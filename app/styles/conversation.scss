@@ -1,10 +1,11 @@
-.message-list {
+.conversation {
 	overflow-y: scroll;
-	height: 100%;
 
-	.message {
-		.time {
-			@extend .text-hint;
+	.message-list {
+		.message {
+			.time {
+				@extend .text-hint;
+			}
 		}
 	}
 }
