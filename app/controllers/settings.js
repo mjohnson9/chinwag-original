@@ -49,10 +49,10 @@ export default Ember.Controller.extend({
 
 		switch(window.applicationCache.status) {
 			case window.applicationCache.UNCACHED:
-				this.set('updateStatus', 'Updates disabled. You are using the live version of the client.');
+				this.set('updateStatus', 'Updates are disabled. You are using the live version of the client.');
 				break;
 			case window.applicationCache.IDLE:
-				this.set('updateStatus', 'No updates available.');
+				this.set('updateStatus', 'Up-to-date');
 				break;
 			case window.applicationCache.CHECKING:
 				this.set('updateStatus', 'Checking for updates...');
@@ -64,7 +64,7 @@ export default Ember.Controller.extend({
 				this.set('updateStatus', 'Update downloaded. Refresh the client for it to take effect.');
 				break;
 			case window.applicationCache.OBSOLETE:
-				this.set('updateStatus', 'Updates disabled. Refresh to load the live version of the client.');
+				this.set('updateStatus', 'Updates are disabled. Refresh to load the live version of the client.');
 				break;
 			default:
 				this.set('updateStatus', 'Unknown status: '+window.applicationCache.status);
