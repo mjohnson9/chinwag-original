@@ -1,17 +1,24 @@
-<div class="conversation">
-	<div class="message-list">
-		{{#each messages}}
-			{{#paper-content class="message md-whiteframe-z1"}}
-				<img {{bind-attr src=conversation.contact.avatar alt=from}} class="face">
-
-				<h4>{{message}}</h4>
-				<div class="time" {{bind-attr title=timeFormatted}}>{{time-ago createdAt=time}}</div>
-			{{/paper-content}}
-		{{/each}}
+{{#paper-toolbar}}
+	<div class="md-toolbar-tools">
+		{{#link-to "index"}}{{paper-icon icon="arrow-back"}}{{/link-to}}
+		<span>{{contact.name}}</span>
 	</div>
-	<form {{action "submit" on="submit"}} class="message-form">
-		<md-input-group class="md-default-theme">
-			{{input class="message-field" type="text" placeholder="Send message" value=messageToSend}}
-		</md-input-group>
-	</form>
+{{/paper-toolbar}}
+
+<div class="conversation">
+	{{#paper-list class="message-list"}}
+		{{#each messages}}
+			{{#paper-item}}
+				{{#paper-tile-left}}
+					<img {{bind-attr src=conversation.contact.avatar alt=from}} class="face">
+				{{/paper-tile-left}}
+
+				{{#paper-tile-content}}
+					<h3>{{message}}</h3>
+					<div class="time" {{bind-attr title=timeFormatted}}>{{time-ago createdAt=time}}</div>
+				{{/paper-tile-content}}
+			{{/paper-item}}
+		{{/each}}
+    {{/paper-list}}
+	{{input class="message-field" type="text" placeholder="Send message" value=messageToSend action="sendMessage"}}
 </div>

@@ -1,9 +1,9 @@
-{{#paper-nav-container classNames="ember-app"}}
+{{#paper-nav-container active=drawerOpen classNames="ember-app"}}
 	{{#paper-sidenav classNames="md-sidenav-left md-whiteframe-z2" flex-layout="column" flex=true}}
 		{{#paper-toolbar}}
 			<div class="md-toolbar-tools">
 				<div class="logo">
-					<img src="/favicon-96x96.png" width="30" height="30"/>&nbsp;&nbsp;<strong>Chinwag</strong>
+					{{paper-icon icon="chat"}}&nbsp;&nbsp;<strong>Chinwag</strong>
 				</div>
 			</div>
 		{{/paper-toolbar}}

@@ -1,3 +1,11 @@
+{{#paper-toolbar}}
+	<h2 class="md-toolbar-tools">
+		{{#paper-sidenav-toggle class="menu-sidenav-toggle"}}
+			{{paper-icon icon="menu"}}
+		{{/paper-sidenav-toggle}}
+		<span>TODO: Title</span>
+	</h2>
+{{/paper-toolbar}}
 {{#paper-list classNames="conversation-list"}}
 	{{#each}}
 		{{#link-to "conversation" this}}
