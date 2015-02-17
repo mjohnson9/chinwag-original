@@ -5,17 +5,10 @@ import config from './config/environment';
 
 window.addEventListener('load', function() {
 	if(window.applicationCache != null) {
-		var reloadPage = function() {
-			window.location.reload();
-		};
-		window.applicationCache.addEventListener('updateready', function() {
-			if(window.applicationCache.status === window.applicationCache.UPDATEREADY) {
-				return reloadPage();
-			}
-		}, false);
 		window.applicationCache.addEventListener('obsolete', function() {
 			if(window.applicationCache.status === window.applicationCache.OBSOLETE) {
-				return reloadPage();
+				// Due to the special nature of obsolete, we always reload the page.
+				window.location.reload();
 			}
 		}, false);
 	}
@@ -26,11 +19,7 @@ Ember.MODEL_FACTORY_INJECTIONS = true;
 var App = Ember.Application.extend({
 	modulePrefix: config.modulePrefix,
 	podModulePrefix: config.podModulePrefix,
-	Resolver: Resolver,
-
-	customEvents: {
-		checking: 'applicationCacheChecking'
-	}
+	Resolver: Resolver
 });
 
 loadInitializers(App, config.modulePrefix);

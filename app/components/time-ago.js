@@ -35,7 +35,7 @@ export default Ember.Component.extend({
 	oldTimeAgo: "",
 	calculatedTime: null,
 	timer: null,
-	
+
 	startClock: function() {
 		this.cancelClock();
 
@@ -57,12 +57,12 @@ export default Ember.Component.extend({
 
 		var diff = -(calculatedTime.diff());
 		var nextChange; // how long until this should change
-		
+
 		if(diff < diffBeforeFromNow) {
 			this.set("timeAgo", "now");
 			nextChange = diffBeforeFromNow-diff;
 		} else if(diff < diffBeforeTime) {
-			this.set("timeAgo", calculatedTime.fromNow(true));
+			this.set("timeAgo", calculatedTime.fromNow());
 			nextChange = Math.min(diffBeforeTime-diff, nextFromNowChange(diff));
 		} else if(diff < diffBeforeShortDatetime) {
 			this.set("timeAgo", calculatedTime.format("LT"));

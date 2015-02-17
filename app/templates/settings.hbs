@@ -4,11 +4,23 @@
 		<span>Settings</span>
 	</div>
 {{/paper-toolbar}}
-{{#paper-list classNames="conversations"}}
-	{{#paper-item classNames="conversation"}}
+{{#paper-list}}
+	{{#paper-item}}
+		{{#paper-tile-content}}
+			{{#if updateShowRefresh}}
+				<h3>{{#paper-button raised=true class="md-primary" action="refreshPage"}}Refresh{{/paper-button}}</h3>
+			{{else}}
+				<h3>{{#paper-button action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
+			{{/if}}
+			<p>{{updateStatus}}</p>
+		{{/paper-tile-content}}
+	{{/paper-item}}
+	{{paper-divider}}
+	{{#paper-item}}
 		{{#paper-tile-content}}
 			<h3>Version</h3>
 			<p>Chinwag {{version}}</p>
 		{{/paper-tile-content}}
 	{{/paper-item}}
+	{{paper-divider}}
 {{/paper-list}}
