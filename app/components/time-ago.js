@@ -1,97 +1,172 @@
-import Ember from "ember";
-import moment from "moment";
+import Ember from 'ember';
+import moment from 'moment';
 
-var millisecond = 1;
-var second = millisecond*1000;
-var minute = second*60;
-var hour = minute*60;
-var day = hour*24;
+var times = {
+	milliseconds: 1,
+	seconds: 1000,
+	minutes: 1000*60,
+	hours: 1000*60*60,
+	days: 1000*60*60*24
+};
 
-var diffBeforeFromNow = 45*second; // 30 seconds
-var diffBeforeTime = 1*hour; // 1 hour
-var diffBeforeShortDatetime = 22*hour; // 22 hours
-var diffBeforeLongDatetime = 4*day; // 4 days
-var diffBeforeFullDatetime = 345*day; // 345 days
-
-function nextFromNowChange(diff) {
-	if(diff < 45*second) {
-		return 45 * second - diff;
-	} else if(diff < 90*second) {
-		return 90 * second - diff;
-	} else if(diff < 45*minute) {
-		return minute - diff % minute;
-	} else if(diff < 90*minute) {
-		return 90 * minute - diff;
-	} else if(diff < 22*hour) {
-		return hour - diff % hour;
-	} else {
-		Ember.Logger.error("Unable to calculate next fromNow change for "+diff+"ms. Using 5 seconds.");
-		return 5*second;
+var formats = [
+	{
+		unit: 'seconds',
+		short: 's',
+		long: ' sec',
+		until: times.minutes
+	},
+	{
+		unit: 'minutes',
+		short: 'm',
+		long: ' min',
+		until: times.hours
+	},
+	{
+		unit: 'hours',
+		short: 'h',
+		long: ' hr',
+		until: times.days
+	},
+	{
+		unit: 'days',
+		short: 'd',
+		until: times.days*7
+	},
+	{
+		shortFormat: 'l',
+		longFormat: 'MMM D'
 	}
+];
+
+function formatAs(format, time, rawDiff, long) {
+	var diff = Math.abs(rawDiff);
+
+	var simpleName, formatName;
+	if(long) {
+		simpleName = 'long';
+		formatName = 'longFormat';
+	} else {
+		simpleName = 'short';
+		formatName = 'shortFormat';
+	}
+
+	if(format[simpleName] != null) {
+		var num = moment.duration(diff)[format.unit]();
+		if(num < 1) {
+			num = 1;
+		}
+
+		var unitString = format[simpleName];
+		if(long && num > 1) {
+			unitString += 's';
+		}
+
+		return num+unitString;
+	}
+
+	if(format[formatName] != null) {
+		return time.format(format[formatName]);
+	}
+
+	return null;
+}
+
+function getFormatted(time, long) {
+	var rawDiff = time.diff();
+	var futureDate = rawDiff>0;
+	var diff = Math.abs(rawDiff);
+
+	for(var i = 0, j = formats.length; i < j; i++) {
+		var format = formats[i];
+		if(format.until == null || diff < format.until) {
+			var retData = {
+				text: formatAs(format, time, rawDiff, long)
+			};
+
+			if(retData.text === null) {
+				continue;
+			}
+
+			var nextFormat;
+			var timeUnit = times[format.unit];
+			if(futureDate) {
+				if(i === 0) {
+					retData.nextChange = diff;
+				} else {
+					nextFormat = formats[i-1];
+					retData.nextChange = Math.min(diff-nextFormat.until, timeUnit - diff % timeUnit);
+				}
+			} else {
+				if(format.until != null) {
+					retData.nextChange = Math.min(format.until-diff, timeUnit - diff % timeUnit);
+				}
+			}
+
+			return retData;
+		}
+	}
+
+	throw 'Given difference outside of usable range';
 }
 
 export default Ember.Component.extend({
-	timeAgo: "",
-	oldTimeAgo: "",
+	tagName: 'span',
+	attributeBindings: ['formattedDate:title'],
+
+	timeAgo: '',
+	long: false,
 	calculatedTime: null,
 	timer: null,
+
+	formattedDate: function() {
+		var calculatedTime = this.get('calculatedTime');
+		if(calculatedTime == null) {
+			return "";
+		}
+
+		return calculatedTime.format('LT [-] ll');
+	}.property('calculatedTime'),
 
 	startClock: function() {
 		this.cancelClock();
 
-		var createdAt = this.get("createdAt");
+		var createdAt = this.get('createdAt');
 		if(createdAt == null) {
-			this.set("calculatedTime", null);
+			this.set('calculatedTime', null);
 			return;
 		}
 
-		this.set("calculatedTime", moment(createdAt));
+		this.set('calculatedTime', moment(createdAt));
 		this.clock();
-	}.on("didInsertElement").observes("createdAt"),
+	}.on('didInsertElement').observes('createdAt', 'long'),
 
 	clock: function() {
-		var calculatedTime = this.get("calculatedTime");
+		var calculatedTime = this.get('calculatedTime');
 		if(calculatedTime === null) {
 			return;
 		}
 
-		var diff = -(calculatedTime.diff());
-		var nextChange; // how long until this should change
+		var long = !!this.get('long');
 
-		if(diff < diffBeforeFromNow) {
-			this.set("timeAgo", "now");
-			nextChange = diffBeforeFromNow-diff;
-		} else if(diff < diffBeforeTime) {
-			this.set("timeAgo", calculatedTime.fromNow());
-			nextChange = Math.min(diffBeforeTime-diff, nextFromNowChange(diff));
-		} else if(diff < diffBeforeShortDatetime) {
-			this.set("timeAgo", calculatedTime.format("LT"));
-			nextChange = diffBeforeShortDatetime-diff;
-		} else if(diff < diffBeforeLongDatetime) {
-			this.set("timeAgo", calculatedTime.format("ddd, LT"));
-			nextChange = diffBeforeLongDatetime-diff;
-		} else if(diff < diffBeforeFullDatetime) {
-			this.set("timeAgo", calculatedTime.format("MMM D, LT"));
-			nextChange = diffBeforeFullDatetime-diff;
-		} else {
-			this.set("timeAgo", calculatedTime.format("l LT"));
-			nextChange = diffBeforeFullDatetime-diff;
-		}
+		var formatData = getFormatted(calculatedTime, long);
 
-		if(nextChange >= 0) {
-			Ember.Logger.debug("[time-ago]", calculatedTime.format(), "Updating in "+(nextChange+50)+"ms");
-			this.set("timer", Ember.run.later(this, this.clock, nextChange+50));
+		this.set('timeAgo', formatData.text);
+
+		if(formatData.nextChange != null) {
+			Ember.Logger.debug('[time-ago]', calculatedTime.format(), 'Updating in '+(formatData.nextChange+1)+'ms');
+			this.set('timer', Ember.run.later(this, this.clock, formatData.nextChange+1));
 		} else {
-			Ember.Logger.debug("[time-ago]", calculatedTime.format(), "Never updating again");
+			Ember.Logger.debug('[time-ago]', calculatedTime.format(), 'Never updating again');
 		}
 	},
 
 	cancelClock: function() {
-		var timer = this.get("timer");
+		var timer = this.get('timer');
 		if(timer != null) {
-			Ember.Logger.debug("[time-ago]", this.get("calculatedTime").format(), "Timer cancelled");
+			Ember.Logger.debug('[time-ago]', this.get('calculatedTime').format(), 'Timer cancelled');
 			Ember.run.cancel(timer);
 			this.set('timer', undefined);
 		}
-	}.on("willDestroyElement")
+	}.on('willDestroyElement')
 });

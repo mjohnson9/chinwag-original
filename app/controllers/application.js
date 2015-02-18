@@ -33,13 +33,13 @@ export default Ember.Controller.extend({
 		}
 
 		this.set('updateStatus', undefined);
-		this.set('lastUpdateCheck', undefined);
+		this.set('updateLastCheck', undefined);
 		switch(window.applicationCache.status) {
 			case window.applicationCache.UNCACHED:
 				this.set('updateStatus', 'Updates are disabled. You are using the live version of the client.');
 				break;
 			case window.applicationCache.IDLE:
-				this.set('lastUpdateCheck', moment());
+				this.set('updateLastCheck', moment());
 				this._setUpdateClock();
 				break;
 			case window.applicationCache.CHECKING:
@@ -63,13 +63,14 @@ export default Ember.Controller.extend({
 	_setUpdateClock: function() {
 		this._cancelUpdateClock();
 
-		var lastUpdateCheck = this.get('lastUpdateCheck');
-		if(lastUpdateCheck == null) {
+		var updateLastCheck = this.get('updateLastCheck');
+		if(updateLastCheck == null) {
 			return;
 		}
 
-		var nextUpdateCheck = lastUpdateCheck.add(this.updateInterval+(Math.random()*this.updateInaccuracy));
-		console.log('[application-cache]', 'Next update check at', nextUpdateCheck.format());
+		var nextUpdateCheck = moment(updateLastCheck).add(this.updateInterval+(Math.random()*this.updateInaccuracy));
+		this.set('updateNextCheck', nextUpdateCheck);
+		Ember.Logger.debug('[application-cache]', 'Next update check at', nextUpdateCheck.format());
 
 		this.set('updateTimer', Ember.run.later(this, this._checkForUpdates, nextUpdateCheck.diff()));
 	},
@@ -80,6 +81,7 @@ export default Ember.Controller.extend({
 			Ember.Logger.debug('[application-cache]', 'Update timer cancelled');
 			Ember.run.cancel(timer);
 			this.set('updateTimer', undefined);
+			this.set('updateNextCheck', undefined);
 		}
 	}.on('willDestroyElement'),
 
@@ -90,7 +92,7 @@ export default Ember.Controller.extend({
 	_teardownEventListeners: function() {
 		if(this._updateStatusClosure != null) {
 			for(var i = 0; i < applicationCacheEvents.length; i++) {
-				console.log('[application-cache]', 'Removed listener for', applicationCacheEvents[i]);
+				Ember.Logger.debug('[application-cache]', 'Removed listener for', applicationCacheEvents[i]);
 				window.applicationCache.removeEventListener(applicationCacheEvents[i], this._updateStatusClosure, false);
 			}
 
@@ -107,7 +109,7 @@ export default Ember.Controller.extend({
 		this._updateStatusClosure = this._updateStatus.bind(this);
 
 		for(var i = 0; i < applicationCacheEvents.length; i++) {
-			console.log('[application-cache]', 'Added listener for', applicationCacheEvents[i]);
+			Ember.Logger.debug('[application-cache]', 'Added listener for', applicationCacheEvents[i]);
 			window.applicationCache.addEventListener(applicationCacheEvents[i], this._updateStatusClosure, false);
 		}
 

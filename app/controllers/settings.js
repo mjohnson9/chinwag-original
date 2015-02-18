@@ -9,7 +9,8 @@ export default Ember.Controller.extend({
 	updateShowRefresh: Ember.computed.alias('controllers.application.updateShowRefresh'),
 	updateDisabled: Ember.computed.alias('controllers.application.updateDisabled'),
 	updateStatus: Ember.computed.alias('controllers.application.updateStatus'),
-	updateLastCheck: Ember.computed.alias('controllers.application.lastUpdateCheck'),
+	updateLastCheck: Ember.computed.alias('controllers.application.updateLastCheck'),
+	updateNextCheck: Ember.computed.alias('controllers.application.updateNextCheck'),
 
 	actions: {
 		refreshPage: function() {

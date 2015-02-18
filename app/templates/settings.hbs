@@ -10,10 +10,10 @@
 			{{#if updateShowRefresh}}
 				<h3>{{#paper-button raised=true class="md-primary" action="refreshPage"}}Refresh{{/paper-button}}</h3>
 			{{else}}
-				<h3>{{#paper-button raised=true action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
+				<h3>{{#paper-button action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
 			{{/if}}
 			{{#if updateLastCheck}}
-				<p>Last checked for updates {{time-ago createdAt=updateLastCheck}}.</p>
+				<p>Last checked for updates {{time-ago long=true createdAt=updateLastCheck}} ago. Next check in {{time-ago long=true createdAt=updateNextCheck}}.</p>
 			{{else}}
 				<p>{{updateStatus}}</p>
 			{{/if}}
