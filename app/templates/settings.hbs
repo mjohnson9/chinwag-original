@@ -10,7 +10,7 @@
 			{{#if updateShowRefresh}}
 				<h3>{{#paper-button raised=true class="md-primary" action="refreshPage"}}Refresh{{/paper-button}}</h3>
 			{{else}}
-				<h3>{{#paper-button action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
+				<h3>{{#paper-button raised=true action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
 			{{/if}}
 			<p>{{updateStatus}}</p>
 		{{/paper-tile-content}}

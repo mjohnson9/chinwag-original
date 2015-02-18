@@ -39,6 +39,7 @@
     "glob": "^4.0.5"
   },
   "dependencies": {
+    "broccoli-file-remover": "^0.3.1",
     "broccoli-merge-trees": "^0.2.1",
     "ember-git-version": "0.0.1"
   }

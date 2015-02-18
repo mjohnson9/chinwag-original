@@ -5,7 +5,7 @@ module.exports = function(environment) {
 		modulePrefix: 'chinwag',
 		environment: environment,
 		baseURL: '/',
-		locationType: 'auto',
+		locationType: undefined,
 		EmberENV: {
 			FEATURES: {
 				// Here you can enable experimental features on an ember canary build
