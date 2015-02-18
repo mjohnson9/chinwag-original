@@ -84,15 +84,14 @@ export default Ember.Component.extend({
 		} else {
 			Ember.Logger.debug("[time-ago]", calculatedTime.format(), "Never updating again");
 		}
-
-		console.groupEnd();
 	},
 
 	cancelClock: function() {
 		var timer = this.get("timer");
-		if(timer !== null) {
+		if(timer != null) {
 			Ember.Logger.debug("[time-ago]", this.get("calculatedTime").format(), "Timer cancelled");
 			Ember.run.cancel(timer);
+			this.set('timer', undefined);
 		}
 	}.on("willDestroyElement")
 });

@@ -12,7 +12,11 @@
 			{{else}}
 				<h3>{{#paper-button raised=true action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
 			{{/if}}
-			<p>{{updateStatus}}</p>
+			{{#if updateLastCheck}}
+				<p>Last checked for updates {{time-ago createdAt=updateLastCheck}}.</p>
+			{{else}}
+				<p>{{updateStatus}}</p>
+			{{/if}}
 		{{/paper-tile-content}}
 	{{/paper-item}}
 	{{paper-divider}}

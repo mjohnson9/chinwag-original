@@ -1,9 +1,18 @@
 import Ember from 'ember';
-import moment from "moment";
+import moment from 'moment';
+
+var millisecond = 1;
+var second = millisecond*1000;
+var minute = second*60;
+var hour = minute*60;
+//var day = hour*24;
 
 var applicationCacheEvents = ['checking', 'downloading', 'progress', 'error', 'obsolete', 'cached', 'noupdate', 'updateready'];
 
 export default Ember.Controller.extend({
+	updateInterval: 1*hour+5*minute,
+	updateInaccuracy: 30*minute,
+
 	_updateSupported: function() {
 		this.set('updateSupported', window.applicationCache != null);
 	}.on('init'),
@@ -23,12 +32,15 @@ export default Ember.Controller.extend({
 			}
 		}
 
+		this.set('updateStatus', undefined);
+		this.set('lastUpdateCheck', undefined);
 		switch(window.applicationCache.status) {
 			case window.applicationCache.UNCACHED:
 				this.set('updateStatus', 'Updates are disabled. You are using the live version of the client.');
 				break;
 			case window.applicationCache.IDLE:
-				this.set('updateStatus', 'Last checked for updates at '+moment().format('L LTS'));
+				this.set('lastUpdateCheck', moment());
+				this._setUpdateClock();
 				break;
 			case window.applicationCache.CHECKING:
 				this.set('updateStatus', 'Checking for updates...');
@@ -46,6 +58,33 @@ export default Ember.Controller.extend({
 				this.set('updateStatus', 'Unknown status: '+window.applicationCache.status);
 				break;
 		}
+	},
+
+	_setUpdateClock: function() {
+		this._cancelUpdateClock();
+
+		var lastUpdateCheck = this.get('lastUpdateCheck');
+		if(lastUpdateCheck == null) {
+			return;
+		}
+
+		var nextUpdateCheck = lastUpdateCheck.add(this.updateInterval+(Math.random()*this.updateInaccuracy));
+		console.log('[application-cache]', 'Next update check at', nextUpdateCheck.format());
+
+		this.set('updateTimer', Ember.run.later(this, this._checkForUpdates, nextUpdateCheck.diff()));
+	},
+
+	_cancelUpdateClock: function() {
+		var timer = this.get('updateTimer');
+		if(timer != null) {
+			Ember.Logger.debug('[application-cache]', 'Update timer cancelled');
+			Ember.run.cancel(timer);
+			this.set('updateTimer', undefined);
+		}
+	}.on('willDestroyElement'),
+
+	_checkForUpdates: function() {
+		window.applicationCache.update();
 	},
 
 	_teardownEventListeners: function() {
