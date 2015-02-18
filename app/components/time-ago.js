@@ -95,7 +95,7 @@ function getFormatted(time, long) {
 					retData.nextChange = diff;
 				} else {
 					nextFormat = formats[i-1];
-					retData.nextChange = Math.min(diff-nextFormat.until, timeUnit - diff % timeUnit);
+					retData.nextChange = Math.min(diff-nextFormat.until, diff % timeUnit);
 				}
 			} else {
 				if(format.until != null) {
