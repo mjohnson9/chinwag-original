@@ -18,7 +18,10 @@ var app = new EmberApp({
 
 	manifest: {
 		appcacheFile: '/manifest.appcache',
-		excludePaths: ['index.html'],
+		excludePaths: [
+			'index.html',
+			'assets/ember-data.js.map' // I don't even know where this came from
+		],
 		includePaths: [
 			// Index
 			'/',
@@ -42,8 +45,7 @@ var app = new EmberApp({
 	},
 
 	fingerprint: {
-		extensions: ['js', 'css', 'png', 'jpg', 'gif', 'map', 'eot', 'svg', 'ttf', 'woff'],
-		replaceExtensions: ['html', 'css', 'js', 'appcache']
+		enabled: false // Disable asset fingerprinting because we're using application cache
 	}
 });
 
