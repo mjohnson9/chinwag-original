@@ -2,6 +2,8 @@
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
 var app = new EmberApp({
+	storeConfigInMeta: false,
+
 	imagemin: {
 		interlaced: false,
 		optimizationLevel: 9,
@@ -37,6 +39,11 @@ var app = new EmberApp({
 		],
 		fallback: ['* /'],
 		network: ['/http-bind']
+	},
+
+	fingerprint: {
+		extensions: ['js', 'css', 'png', 'jpg', 'gif', 'map', 'eot', 'svg', 'ttf', 'woff'],
+		replaceExtensions: ['html', 'css', 'js', 'appcache']
 	}
 });
 
