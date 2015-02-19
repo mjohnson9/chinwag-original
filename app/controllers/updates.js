@@ -9,39 +9,9 @@ var hour = minute*60;
 
 var UpdateStatus = Ember.Object.extend({
 	setStatus: function(status) {
-		switch(status) {
-			case window.applicationCache.UNCACHED:
-				this.set('progress', undefined);
-				this.set('status', 'uncached');
-				break;
-			case window.applicationCache.IDLE:
-				this.set('progress', undefined);
-				this.set('status', 'idle');
-				break;
-			case window.applicationCache.CHECKING:
-				this.set('progress', undefined);
-				this.set('status', 'checking');
-				break;
-			case window.applicationCache.DOWNLOADING:
-				this.set('status', 'downloading');
-				break;
-			case window.applicationCache.UPDATEREADY:
-				this.set('progress', undefined);
-				this.set('status', 'update_ready');
-				break;
-			case window.applicationCache.OBSOLETE:
-				this.set('progress', undefined);
-				this.set('status', 'obsolete');
-				break;
-			case 'unsupported':
-				this.set('progress', undefined);
-				this.set('status', 'unsupported');
-				break;
-			default:
-				this.set('progress', undefined);
-				Ember.Logger.error('[application-cache]', 'Unknown status:', status);
-				this.set('status', status);
-				break;
+		this.set('status', status);
+		if(status !== 'downloading') {
+			this.set('progress', undefined);
 		}
 		this.set('lastChange', moment());
 		Ember.Logger.debug('[application-cache]', 'New status:', this.get('status'));
@@ -49,7 +19,7 @@ var UpdateStatus = Ember.Object.extend({
 
 	setProgress: function(progress) {
 		if(this.get('status') !== 'downloading') {
-			throw "Can not set progress while in any state other than downloading.";
+			throw 'Can not set progress while in any state other than downloading.';
 		}
 
 		this.set('progress', progress);
@@ -78,11 +48,11 @@ export default Ember.Controller.extend({
 			Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
 			switch(e.type) {
 				case 'noupdate':
-					status.setStatus(window.applicationCache.status);
+					status.setStatus('noupdate');
 					this.set('lastCheck', moment());
 					break;
 				case 'downloading':
-					status.setStatus(window.applicationCache.DOWNLOADING);
+					status.setStatus('downloading');
 					status.setProgress(undefined);
 					break;
 				case 'progress':
@@ -93,14 +63,14 @@ export default Ember.Controller.extend({
 					}
 					break;
 				case 'error':
-					status.setStatus(window.applicationCache.status);
+					status.setStatus('error');
 					Ember.Logger.error('[application-cache]', 'error:', e.message);
 					if(window.applicationCache.status === window.applicationCache.IDLE) {
 						this.set('lastCheck', moment());
 					}
 					break;
 				default:
-					status.setStatus(window.applicationCache.status);
+					status.setStatus(e.type);
 					break;
 			}
 		} else {
@@ -152,7 +122,7 @@ export default Ember.Controller.extend({
 
 	checkForUpdates: function() {
 		if(!this.get('supported')) {
-			throw "Application cache not supported";
+			throw 'Application cache not supported';
 		}
 
 		window.applicationCache.update();
