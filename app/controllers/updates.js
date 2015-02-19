@@ -109,7 +109,7 @@ export default Ember.Controller.extend({
 			return;
 		}
 
-		var nextCheck = moment(lastCheck).add(this.updateInterval+(Math.random()*this.updateInaccuracy));
+		var nextCheck = moment(lastCheck).add(this.checkInterval+(Math.random()*this.checkInaccuracy));
 		Ember.Logger.debug('[application-cache]', 'Next update check at', nextCheck.format());
 		return nextCheck;
 	}.property('lastCheck'),
