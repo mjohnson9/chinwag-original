@@ -70,6 +70,7 @@ export default Ember.Controller.extend({
 					}
 					break;
 				default:
+					Ember.Logger.warn('[application-cache]', 'Unhandled event type:', e.type);
 					status.setStatus(e.type);
 					break;
 			}
