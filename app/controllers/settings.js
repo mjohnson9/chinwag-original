@@ -13,10 +13,11 @@ export default Ember.Controller.extend({
 		var status = this.get('controllers.updates.status.status');
 
 		switch(status) {
-			case 'idle':
+			case 'noupdate':
 				return;
-			case 'uncached':
-				return 'Updates are disabled. You are using the live version of the client.';
+			case 'error':
+				//return 'Updates are disabled. You are using the live version of the client.';
+				return 'An error occurred while checking for updates.';
 			case 'checking':
 				return 'Checking for updates...';
 			case 'downloading':
@@ -26,10 +27,12 @@ export default Ember.Controller.extend({
 				}
 				var progressFormatted = (progress*100).toFixed(1);
 				return 'Downloading updates: '+progressFormatted+'%';
-			case 'update_ready':
+			case 'updateready':
 				return 'Updates downloaded. Refresh the client for it to take effect.';
 			case 'obsolete':
 				return 'Updates are disabled. Refresh the client to load the live version.';
+			case 'unsupported':
+				return 'Your browser does not support updates.';
 			default:
 				return 'Unknown update status: '+status;
 		}
@@ -38,19 +41,19 @@ export default Ember.Controller.extend({
 	showLastCheck: function() {
 		var status = this.get('controllers.updates.status.status');
 
-		return status === 'idle';
+		return status === 'noupdate';
 	}.property('controllers.updates.status.status'),
 
 	updateDisabled: function() {
 		var status = this.get('controllers.updates.status.status');
 
-		return status !== 'idle';
+		return status !== 'noupdate';
 	}.property('controllers.updates.status.status'),
 
 	updateShowRefresh: function() {
 		var status = this.get('controllers.updates.status.status');
 
-		return status === 'update_ready' || status === 'obsolete';
+		return status === 'updateready' || status === 'obsolete';
 	}.property('controllers.updates.status.status'),
 
 	actions: {
@@ -59,7 +62,7 @@ export default Ember.Controller.extend({
 		},
 
 		checkForUpdates: function() {
-			window.applicationCache.update();
+			this.get('controllers.updates').checkForUpdates();
 		}
 	}
 });
