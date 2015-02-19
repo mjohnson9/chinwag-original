@@ -48,7 +48,7 @@ export default Ember.Controller.extend({
 	_updateStatus: function(e) {
 		var status = this.get('status');
 
-		Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
+		//Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
 		switch(e.type) {
 			case 'noupdate':
 			case 'cached':
