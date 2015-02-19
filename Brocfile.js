@@ -11,11 +11,6 @@ var app = new EmberApp({
 		lossyPNG: false
 	},
 
-	gzip: {
-		keepUncompressed: true,
-		extensions: ['js', 'css', 'html', 'xml', 'json', 'txt', 'appcache', 'eot', 'svg', 'ttf', 'woff']
-	},
-
 	manifest: {
 		appcacheFile: '/manifest.appcache',
 		excludePaths: [
