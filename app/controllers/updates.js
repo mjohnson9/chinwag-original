@@ -122,7 +122,7 @@ export default Ember.Controller.extend({
 			return;
 		}
 
-		this.set('timer', Ember.run.later(this, this._checkForUpdates, nextCheck.diff()));
+		this.set('timer', Ember.run.later(this, this.checkForUpdates, nextCheck.diff()));
 	}.observes('nextCheck'),
 
 	_cancelClock: function() {
