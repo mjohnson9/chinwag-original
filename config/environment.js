@@ -18,6 +18,18 @@ module.exports = function(environment) {
 			// when it is created
 		},
 
+		imagemin: {
+			interlaced: false,
+			optimizationLevel: 9,
+			progressive: false,
+			lossyPNG: false
+		},
+
+		gzip: {
+			keepUncompressed: true,
+			extensions: ['js', 'css', 'html', 'xml', 'json', 'txt', 'appcache', 'eot', 'svg', 'ttf', 'woff']
+		},
+
 		manifest: {
 			appcacheFile: '/manifest.appcache',
 			excludePaths: ['index.html'],
