@@ -13,19 +13,19 @@ var formats = [
 	{
 		unit: 'seconds',
 		short: 's',
-		long: ' sec',
+		long: ' second',
 		until: times.minutes
 	},
 	{
 		unit: 'minutes',
 		short: 'm',
-		long: ' min',
+		long: ' minute',
 		until: times.hours
 	},
 	{
 		unit: 'hours',
 		short: 'h',
-		long: ' hr',
+		long: ' hour',
 		until: times.days
 	},
 	{
