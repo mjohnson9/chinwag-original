@@ -2,15 +2,56 @@ import Ember from 'ember';
 import config from '../config/environment';
 
 export default Ember.Controller.extend({
-	needs: ['application'],
+	needs: ['updates'],
 
 	version: config.currentRevision,
 
-	updateShowRefresh: Ember.computed.alias('controllers.application.updateShowRefresh'),
-	updateDisabled: Ember.computed.alias('controllers.application.updateDisabled'),
-	updateStatus: Ember.computed.alias('controllers.application.updateStatus'),
-	updateLastCheck: Ember.computed.alias('controllers.application.updateLastCheck'),
-	updateNextCheck: Ember.computed.alias('controllers.application.updateNextCheck'),
+	updateLastCheck: Ember.computed.alias('controllers.updates.lastCheck'),
+	updateNextCheck: Ember.computed.alias('controllers.updates.nextCheck'),
+
+	updateStatus: function() {
+		var status = this.get('controllers.updates.status.status');
+
+		switch(status) {
+			case 'idle':
+				return;
+			case 'uncached':
+				return 'Updates are disabled. You are using the live version of the client.';
+			case 'checking':
+				return 'Checking for updates...';
+			case 'downloading':
+				var progress = this.get('controllers.updates.status.progress');
+				if(progress == null) {
+					return 'Downloading updates...';
+				}
+				var progressFormatted = (progress*100).toFixed(1);
+				return 'Downloading updates: '+progressFormatted+'%';
+			case 'update_ready':
+				return 'Updates downloaded. Refresh the client for it to take effect.';
+			case 'obsolete':
+				return 'Updates are disabled. Refresh the client to load the live version.';
+			default:
+				return 'Unknown update status: '+status;
+		}
+	}.property('controllers.updates.status.status', 'controllers.updates.status.progress'),
+
+	showLastCheck: function() {
+		var status = this.get('controllers.updates.status.status');
+
+		return status === 'idle';
+	}.property('controllers.updates.status.status'),
+
+	updateDisabled: function() {
+		var status = this.get('controllers.updates.status.status');
+
+		return status !== 'idle';
+	}.property('controllers.updates.status.status'),
+
+	updateShowRefresh: function() {
+		var status = this.get('controllers.updates.status.status');
+
+		return status === 'update_ready' || status === 'obsolete';
+	}.property('controllers.updates.status.status'),
 
 	actions: {
 		refreshPage: function() {

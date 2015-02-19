@@ -12,7 +12,7 @@
 			{{else}}
 				<h3>{{#paper-button action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
 			{{/if}}
-			{{#if updateLastCheck}}
+			{{#if showLastCheck}}
 				<p>Last checked for updates {{time-ago long=true createdAt=updateLastCheck}} ago. Next check in {{time-ago long=true createdAt=updateNextCheck}}.</p>
 			{{else}}
 				<p>{{updateStatus}}</p>
