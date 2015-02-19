@@ -76,6 +76,7 @@ export default Ember.Controller.extend({
 		status.setStatus(window.applicationCache.status);
 
 		if(e != null && e.type != null) {
+			Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
 			switch(e.type) {
 				case 'noupdate':
 					this.set('lastCheck', moment());
@@ -95,9 +96,6 @@ export default Ember.Controller.extend({
 					if(window.applicationCache.status === window.applicationCache.IDLE) {
 						this.set('lastCheck', moment());
 					}
-					break;
-				default:
-					Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
 					break;
 			}
 		}
