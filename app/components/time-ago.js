@@ -122,7 +122,7 @@ export default Ember.Component.extend({
 	formattedDate: function() {
 		var calculatedTime = this.get('calculatedTime');
 		if(calculatedTime == null) {
-			return "";
+			return '';
 		}
 
 		return calculatedTime.format('LT [-] ll');

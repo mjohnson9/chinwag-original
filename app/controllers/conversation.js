@@ -2,9 +2,9 @@ import Ember from 'ember';
 
 export default Ember.ObjectController.extend({
 	actions: {
-		submit: function() {
+		sendMessage: function() {
 			this.set('messageToSend', '');
-			alert("Would send message, but I'm just a prototype!");
+			alert('Would send message, but I\'m just a prototype!');
 		}
 	}
 });
