@@ -1,7 +1,44 @@
 /* global require, module */
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
-var app = new EmberApp();
+var app = new EmberApp({
+	imagemin: {
+		interlaced: false,
+		optimizationLevel: 9,
+		progressive: false,
+		lossyPNG: false
+	},
+
+	gzip: {
+		keepUncompressed: true,
+		extensions: ['js', 'css', 'html', 'xml', 'json', 'txt', 'appcache', 'eot', 'svg', 'ttf', 'woff']
+	},
+
+	manifest: {
+		appcacheFile: '/manifest.appcache',
+		excludePaths: ['index.html'],
+		includePaths: [
+			// Index
+			'/',
+
+			// Roboto Draft font files
+			//   default font face
+			'https://fonts.gstatic.com/s/robotodraft/v1/0xES5Sl_v6oyT7dAKuoni4gp9Q8gbYrhqGlRav_IXfk.woff2',
+			'https://fonts.gstatic.com/s/robotodraft/v1/0xES5Sl_v6oyT7dAKuoni7rIa-7acMAeDBVuclsi6Gc.woff',
+			//   medium font face
+			'https://fonts.gstatic.com/s/robotodraft/v1/u0_CMoUf3y3-4Ss4ci-VwXJuJo8UJJfpGKt7pXjBv4s.woff2',
+			'https://fonts.gstatic.com/s/robotodraft/v1/u0_CMoUf3y3-4Ss4ci-VwaTA90I55Xt7owhZwpPnMsc.woff',
+			//   bold font face
+			'https://fonts.gstatic.com/s/robotodraft/v1/u0_CMoUf3y3-4Ss4ci-Vwf79_ZuUxCigM2DespTnFaw.woff2',
+			'https://fonts.gstatic.com/s/robotodraft/v1/u0_CMoUf3y3-4Ss4ci-VwRbnBKKEOwRKgsHDreGcocg.woff',
+			//   italic font face
+			'https://fonts.gstatic.com/s/robotodraft/v1/er-TIW55l9KWsTS1x9bTfgeOulFbQKHxPa89BaxZzA0.woff2',
+			'https://fonts.gstatic.com/s/robotodraft/v1/er-TIW55l9KWsTS1x9bTfoo3ZslTYfJv0R05CazkwN8.woff'
+		],
+		fallback: ['* /'],
+		network: ['/http-bind']
+	}
+});
 
 // Use `app.import` to add additional libraries to the generated
 // output files.
