@@ -9,6 +9,11 @@ var hour = minute*60;
 
 var UpdateStatus = Ember.Object.extend({
 	setStatus: function(status) {
+		var currentStatus = this.get('status');
+		if(currentStatus === status) {
+			return;
+		}
+
 		this.set('status', status);
 		if(status !== 'downloading') {
 			this.set('progress', undefined);
@@ -43,40 +48,35 @@ export default Ember.Controller.extend({
 	_updateStatus: function(e) {
 		var status = this.get('status');
 
-
-		if(e != null && e.type != null) {
-			Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
-			switch(e.type) {
-				case 'noupdate':
-				case 'cached':
-					status.setStatus('noupdate');
-					this.set('lastCheck', moment());
-					break;
-				case 'downloading':
-					status.setStatus('downloading');
+		Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
+		switch(e.type) {
+			case 'noupdate':
+			case 'cached':
+				status.setStatus('noupdate');
+				this.set('lastCheck', moment());
+				break;
+			case 'downloading':
+				status.setStatus('downloading');
+				status.setProgress(undefined);
+				break;
+			case 'progress':
+				if(e.lengthComputable) {
+					status.setProgress(e.loaded/e.total);
+				} else {
 					status.setProgress(undefined);
-					break;
-				case 'progress':
-					if(e.lengthComputable) {
-						status.setProgress(e.loaded/e.total);
-					} else {
-						status.setProgress(undefined);
-					}
-					break;
-				case 'error':
-					status.setStatus('error');
-					Ember.Logger.error('[application-cache]', 'error:', e.message);
-					if(window.applicationCache.status === window.applicationCache.IDLE) {
-						this.set('lastCheck', moment());
-					}
-					break;
-				default:
-					Ember.Logger.warn('[application-cache]', 'Unhandled event type:', e.type);
-					status.setStatus(e.type);
-					break;
-			}
-		} else {
-			status.setStatus(window.applicationCache.status);
+				}
+				break;
+			case 'error':
+				status.setStatus('error');
+				Ember.Logger.error('[application-cache]', 'error:', e.message);
+				if(window.applicationCache.status === window.applicationCache.IDLE) {
+					this.set('lastCheck', moment());
+				}
+				break;
+			default:
+				Ember.Logger.warn('[application-cache]', 'Unhandled event type:', e.type);
+				status.setStatus(e.type);
+				break;
 		}
 	},
 
@@ -142,7 +142,5 @@ export default Ember.Controller.extend({
 			Ember.Logger.debug('[application-cache]', 'Added listener for', applicationCacheEvents[i]);
 			window.applicationCache.addEventListener(applicationCacheEvents[i], this._updateStatusClosure, false);
 		}
-
-		this._updateStatus();
 	}.observes('supported')
 });
