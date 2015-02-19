@@ -47,7 +47,8 @@ export default Ember.Controller.extend({
 		if(e != null && e.type != null) {
 			Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
 			switch(e.type) {
-				case 'noupdate', 'cached':
+				case 'noupdate':
+				case 'cached':
 					status.setStatus('noupdate');
 					this.set('lastCheck', moment());
 					break;
