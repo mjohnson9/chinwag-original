@@ -73,15 +73,16 @@ export default Ember.Controller.extend({
 	_updateStatus: function(e) {
 		var status = this.get('status');
 
-		status.setStatus(window.applicationCache.status);
 
 		if(e != null && e.type != null) {
 			Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
 			switch(e.type) {
 				case 'noupdate':
+					status.setStatus(window.applicationCache.status);
 					this.set('lastCheck', moment());
 					break;
 				case 'downloading':
+					status.setStatus(window.applicationCache.DOWNLOADING);
 					status.setProgress(undefined);
 					break;
 				case 'progress':
@@ -92,12 +93,18 @@ export default Ember.Controller.extend({
 					}
 					break;
 				case 'error':
+					status.setStatus(window.applicationCache.status);
 					Ember.Logger.error('[application-cache]', 'error:', e.message);
 					if(window.applicationCache.status === window.applicationCache.IDLE) {
 						this.set('lastCheck', moment());
 					}
 					break;
+				default:
+					status.setStatus(window.applicationCache.status);
+					break;
 			}
+		} else {
+			status.setStatus(window.applicationCache.status);
 		}
 	},
 
