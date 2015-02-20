@@ -1,14 +1,18 @@
 import DS from 'ember-data';
-import moment from 'moment';
+import Strophe from 'strophe';
 
 var Message = DS.Model.extend({
-	conversation: DS.belongsTo('conversation', {async: true}),
+	contact: DS.belongsTo('contact'),
 
 	from: DS.attr('string'),
 	to: DS.attr('string'),
 
 	time: DS.attr('date'),
-	message: DS.attr('string')
+	message: DS.attr('string'),
+
+	isFromMe: function() {
+		return this.get('contact.id') === Strophe.getBareJidFromJid(this.get('from'));
+	}.property('contact', 'from')
 });
 
 /*var millisecond = 1;
