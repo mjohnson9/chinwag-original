@@ -11,7 +11,7 @@ var Message = DS.Model.extend({
 	message: DS.attr('string')
 });
 
-var millisecond = 1;
+/*var millisecond = 1;
 var second = millisecond*1000;
 var minute = second*60;
 var hour = minute*60;
@@ -33,6 +33,6 @@ Message.reopenClass({
 		{id: 't2h4', conversation: 'test@nightexcessive.us', from: 'test@nightexcessive.us', to: 'receiver@nightexcessive.us', time: moment().subtract(minute-actionTime).toDate(), message: 'Hello (minute)'},
 		{id: 't2h5', conversation: 'test@nightexcessive.us', from: 'test@nightexcessive.us', to: 'receiver@nightexcessive.us', time: moment().toDate(), message: 'Hello (now)'},
 	]
-});
+});*/
 
 export default Message;
