@@ -1,21 +1,21 @@
 {{#paper-toolbar}}
 	<div class="md-toolbar-tools">
 		{{#link-to "index" class="toolbar-back"}}{{paper-icon icon="arrow-back"}}{{/link-to}}
-		<span>{{contact.name}}</span>
+		<span>{{name}}</span>
 	</div>
 {{/paper-toolbar}}
 
 <div class="conversation">
 	{{#paper-list class="message-list"}}
-		{{#each messages}}
+		{{#each message in messages}}
 			{{#paper-item class="message"}}
 				{{#paper-tile-left}}
-					<img {{bind-attr src=conversation.contact.avatar alt=from title=conversation.contact.name}} class="face">
+					<img {{bind-attr src=avatar alt=from title=name}} width="30" height="30" class="face">
 				{{/paper-tile-left}}
 
 				{{#paper-tile-content}}
-					<h3>{{message}}</h3>
-					<div class="time">{{time-ago createdAt=time}}</div>
+					<h3>{{message.message}}</h3>
+					<div class="time">{{time-ago createdAt=message.time}}</div>
 				{{/paper-tile-content}}
 			{{/paper-item}}
 		{{/each}}

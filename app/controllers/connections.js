@@ -2,6 +2,7 @@ import Ember from 'ember';
 import Strophe from 'strophe';
 import { $build, $msg, $iq, $pres } from 'strophe';
 
+import UUID from '../utils/uuid';
 import config from '../config/environment';
 
 var Connection = Ember.Object.extend({
@@ -121,7 +122,39 @@ var Connection = Ember.Object.extend({
 	},
 
 	onChatMessage: function(stanza) {
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received chat message:', stanza);
+		stanza = Ember.$(stanza);
+
+		var from = stanza.attr('from');
+		var fromBare = Strophe.getBareJidFromJid(from);
+
+		var contact = this.store.getById('contact', fromBare);
+		if(contact == null) {
+			Ember.Logger.warn('[connections]', '['+this.get('jid')+']', 'Received message from unknown contact:', fromBare);
+
+			contact = this.store.createRecord('contact', {
+				id: fromBare
+			});
+		}
+
+		if(!contact.get('messages')) {
+			contact.set('messages', Ember.A());
+		}
+
+		var message = {
+			id: UUID(),
+			contact: contact,
+
+			from: from,
+			to: stanza.attr('to'),
+
+			time: new Date(),
+
+			message: stanza.find('body').text()
+		};
+		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received chat message:', message);
+
+		contact.get('messages').pushObject(this.store.createRecord('message', message));
+
 		return true;
 	},
 
