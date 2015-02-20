@@ -8,7 +8,7 @@ var Router = Ember.Router.extend({
 Router.map(function() {
 	this.route('settings');
 
-	this.resource('conversation', {path: '/conversation/:conversation_id'});
+	this.resource('conversation', {path: '/conversation/:contact_id'});
 });
 
 export default Router;

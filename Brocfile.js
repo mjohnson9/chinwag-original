@@ -57,6 +57,7 @@ var app = new EmberApp({
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
+// Add moment.js w/ locales + moment.js timezones
 app.import(app.bowerDirectory + '/moment/min/moment-with-locales.js');
 app.import(app.bowerDirectory + '/ember-cli-moment-shim/moment-shim.js', {
 	exports: {
@@ -64,5 +65,18 @@ app.import(app.bowerDirectory + '/ember-cli-moment-shim/moment-shim.js', {
 	}
 });
 app.import(app.bowerDirectory + '/moment-timezone/moment-timezone.js');
+
+// Add Strophe.js
+app.import(app.bowerDirectory + '/strophejs/src/base64.js');
+app.import(app.bowerDirectory + '/strophejs/src/sha1.js');
+app.import(app.bowerDirectory + '/strophejs/src/md5.js');
+app.import(app.bowerDirectory + '/strophejs/src/core.js');
+app.import(app.bowerDirectory + '/strophejs/src/bosh.js');
+app.import(app.bowerDirectory + '/strophejs/src/websocket.js');
+app.import(app.bowerDirectory + '/ember-cli-strophe-shim/strophe-shim.js', {
+	exports: {
+		strophe: ['default']
+	}
+});
 
 module.exports = app.toTree();

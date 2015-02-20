@@ -16,6 +16,7 @@ module.exports = function(environment) {
 		APP: {
 			// Here you can pass flags/options to your application instance
 			// when it is created
+			STROPHE_MIN_LOGLEVEL: 2 // WARN
 		},
 
 		contentSecurityPolicy: {
@@ -35,6 +36,9 @@ module.exports = function(environment) {
 		// ENV.APP.LOG_TRANSITIONS = true;
 		// ENV.APP.LOG_TRANSITIONS_INTERNAL = true;
 		// ENV.APP.LOG_VIEW_LOOKUPS = true;
+		//ENV.APP.LOG_RAW_XMPP = true;
+		//ENV.APP.STROPHE_MIN_LOGLEVEL = 0; // DEBUG
+		ENV.contentSecurityPolicy['connect-src'] = ENV.contentSecurityPolicy['connect-src']+' https://chinwag.nightexcessive.us/http-bind';
 	}
 
 	if (environment === 'test') {
