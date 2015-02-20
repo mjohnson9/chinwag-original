@@ -6,65 +6,95 @@ import UUID from '../utils/uuid';
 import config from '../config/environment';
 
 var Connection = Ember.Object.extend({
-	boshURL: null,
-	jid: null,
-	password: null,
+	account: null,
 
 	connection: null,
+	controller: null,
 	store: null,
 
 	connect: function() {
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Initiating connection via '+this.get('boshURL')+'...');
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Initiating connection via '+this.get('account.boshURL')+'...');
 
-		var connection = new Strophe.Connection(this.get('boshURL'));
+		var connection = new Strophe.Connection(this.get('account.boshURL'));
 		if(config.APP.LOG_RAW_XMPP) {
 			connection.rawInput = this.stropheRawIn.bind(this);
 			connection.rawOutput = this.stropheRawOut.bind(this);
 		}
 		this.set('connection', connection);
 
-		connection.connect(this.get('jid'), this.get('password'), this.onConnect.bind(this));
+		var connectJID = this.get('account.id');
+
+		connection.connect(connectJID, this.get('account.password'), this.onConnect.bind(this));
 	},
 
-	sendInitialPresence: function() {
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Sending initial presence...');
-		this.connection.send($pres());
+	sendMessage: function(to, body) {
+		this.get('connection').send($msg({
+			to: to,
+			type: 'chat'
+		}).c('body').t(body));
+
+		var contact = this.store.getById('contact', to);
+		if(contact == null) {
+			Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Sent message to unknown contact:', to);
+
+			contact = this.store.createRecord('contact', {
+				id: to,
+				name: to,
+				subscription: 'none'
+			});
+			contact.get('accounts').pushObject(this.get('account'));
+			this.get('account.contacts').pushObject(contact);
+		}
+
+		var message = {
+			id: UUID(),
+			contact: contact,
+
+			from: this.get('account.id'),
+			to: to,
+
+			time: new Date(),
+
+			message: body
+		};
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Sent chat message to', to, message);
+		contact.get('messages').pushObject(this.store.createRecord('message', message));
 	},
 
 	stropheRawIn: function(data) {
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', '[RECV]', data);
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', '[RECV]', data);
 	},
 
 	stropheRawOut: function(data) {
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', '[SEND]', data);
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', '[SEND]', data);
 	},
 
 	onConnect: function(status) {
 		switch(status) {
 			case Strophe.Status.CONNECTING:
-				Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Connecting...');
+				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Connecting...');
 				break;
 			case Strophe.Status.ERROR:
-				Ember.Logger.warn('[connections]', '['+this.get('jid')+']', 'Connection error.');
+				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Connection error.');
 				break;
 			case Strophe.Status.AUTHFAIL:
-				Ember.Logger.warn('[connections]', '['+this.get('jid')+']', 'Authentication failed.');
+				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Authentication failed.');
 				break;
 			case Strophe.Status.CONNFAIL:
-				Ember.Logger.warn('[connections]', '['+this.get('jid')+']', 'Connection to XMPP server failed.');
+				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Connection to XMPP server failed.');
 				break;
 			case Strophe.Status.DISCONNECTING:
-				Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Disconnecting...');
+				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Disconnecting...');
 				break;
 			case Strophe.Status.DISCONNECTED:
-				Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Disconnected.');
+				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Disconnected.');
 				break;
 			case Strophe.Status.CONNECTED:
-				Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Connected.');
+				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Connected.');
 				this.onConnected();
 				break;
 			default:
-				Ember.Logger.warn('[connections]', '['+this.get('jid')+']', 'Unknown status:', status);
+				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Unknown status:', status);
 				break;
 		}
 	},
@@ -80,10 +110,11 @@ var Connection = Ember.Object.extend({
 		this.connection.addHandler(this.onPresenceChange.bind(this), null, 'presence');
 
 		// Send our initial presence
-		this.sendInitialPresence();
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Sending initial presence...');
+		this.connection.send($pres());
 
 		// Ask the server for our roster
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Retrieving roster...');
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Retrieving roster...');
 		this.connection.sendIQ($iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER}), this.onRosterResults.bind(this));
 	},
 
@@ -102,20 +133,25 @@ var Connection = Ember.Object.extend({
 
 		var store = this.get('store');
 		parsed.each(function(index, item) {
-			var record = store.getById('contact', item.jid);
+			var record = store.getById('contact', this.get('account.id')+':'+item.jid);
 			if(record == null) {
-				store.createRecord('contact', {
+				record = store.createRecord('contact', {
 					id: item.jid,
 					name: item.name,
 					subscription: item.subscription
 				});
-				Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Added contact:', item);
+				record.get('accounts').pushObject(this.get('account'));
+
+				this.get('account.contacts').pushObject(record);
+				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Added contact:', item);
 				return;
 			}
 
 			record.set('name', item.name);
 			record.set('subscription', item.subscription);
-			Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Updated contact:', item);
+			record.get('accounts').pushObject(this.get('account'));
+
+			Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Updated contact:', item);
 		}.bind(this));
 
 		return true;
@@ -129,15 +165,15 @@ var Connection = Ember.Object.extend({
 
 		var contact = this.store.getById('contact', fromBare);
 		if(contact == null) {
-			Ember.Logger.warn('[connections]', '['+this.get('jid')+']', 'Received message from unknown contact:', fromBare);
+			Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Received message from unknown contact:', fromBare);
 
 			contact = this.store.createRecord('contact', {
-				id: fromBare
+				id: fromBare,
+				name: fromBare,
+				subscription: 'none'
 			});
-		}
-
-		if(!contact.get('messages')) {
-			contact.set('messages', Ember.A());
+			contact.get('accounts').pushObject(this.get('account'));
+			this.get('account.contacts').pushObject(contact);
 		}
 
 		var message = {
@@ -151,29 +187,62 @@ var Connection = Ember.Object.extend({
 
 			message: stanza.find('body').text()
 		};
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received chat message:', message);
-
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Received chat message:', message);
 		contact.get('messages').pushObject(this.store.createRecord('message', message));
+
+		if(window.Notification != null) {
+			var notification = new window.Notification(contact.get('name'), {
+				icon: contact.get('avatar'),
+				body: message.message,
+				tag: message.id
+			});
+
+			notification.onclick = this.onNotificationClicked(fromBare, notification).bind(this);
+		}
+
+		if(this.controller.notificationSound != null) {
+			this.controller.notificationSound.play();
+		}
 
 		return true;
 	},
 
+	onNotificationClicked: function(bareJID, notification) {
+		return function() {
+			this.controller.transitionToRoute('conversation', bareJID);
+			window.focus();
+			notification.close();
+		};
+	},
+
 	onRosterChange: function(stanza) {
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received roster change:', stanza);
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Received roster change:', stanza);
 		return true;
 	},
 
 	onPresenceChange: function(stanza) {
-		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received presence change:', stanza);
+		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Received presence change:', stanza);
 		return true;
 	}
 });
 
 export default Ember.ArrayController.extend({
+	notificationSound: null,
+
 	connections: null,
 
 	_initConnections: function() {
 		this.set('connections', Ember.Map.create());
+	}.on('init'),
+
+	_initNotifications: function() {
+		if(window.Notification != null) {
+			window.Notification.requestPermission();
+		}
+		if(window.Audio != null) {
+			this.notificationSound = new Audio('/sounds/received.m4a');
+			this.notificationSound.preload = 'auto';
+		}
 	}.on('init'),
 
 	model: function() {
@@ -211,10 +280,9 @@ export default Ember.ArrayController.extend({
 		}
 
 		var connection = Connection.create({
-			boshURL: account.get('boshURL'),
-			jid: fullJID,
-			password: account.get('password'),
+			account: account,
 
+			controller: this,
 			store: this.get('store')
 		});
 

@@ -15,7 +15,15 @@
 
 				{{#paper-tile-content}}
 					<h3>{{message.message}}</h3>
-					<div class="time">{{time-ago createdAt=message.time}}</div>
+					<div class="time">
+						{{#if message.isIncoming}}
+							{{name}}
+						{{else}}
+							You
+						{{/if}}
+						&middot;
+						{{time-ago createdAt=message.time}}
+					</div>
 				{{/paper-tile-content}}
 			{{/paper-item}}
 		{{/each}}

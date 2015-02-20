@@ -10,6 +10,8 @@ var Message = DS.Model.extend({
 	time: DS.attr('date'),
 	message: DS.attr('string'),
 
+	unread: DS.attr('boolean', {defaultValue: true}),
+
 	isIncoming: function() {
 		return this.get('contact.id') === Strophe.getBareJidFromJid(this.get('from'));
 	}.property('contact', 'from')
