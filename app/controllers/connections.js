@@ -116,18 +116,23 @@ var Connection = Ember.Object.extend({
 			record.set('subscription', item.subscription);
 			Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Updated contact:', item);
 		}.bind(this));
+
+		return true;
 	},
 
 	onChatMessage: function(stanza) {
 		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received chat message:', stanza);
+		return true;
 	},
 
 	onRosterChange: function(stanza) {
 		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received roster change:', stanza);
+		return true;
 	},
 
 	onPresenceChange: function(stanza) {
 		Ember.Logger.debug('[connections]', '['+this.get('jid')+']', 'Received presence change:', stanza);
+		return true;
 	}
 });
 
