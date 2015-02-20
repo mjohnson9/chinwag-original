@@ -27,6 +27,14 @@ var Connection = Ember.Object.extend({
 		connection.connect(connectJID, this.get('account.password'), this.onConnect.bind(this));
 	},
 
+	disconnect: function(sync) {
+		Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Disconnecting...');
+
+		this.connection._options.sync = sync;
+		this.connection.flush();
+		this.connection.disconnect();
+	},
+
 	sendMessage: function(to, body) {
 		this.get('connection').send($msg({
 			to: to,
@@ -230,8 +238,11 @@ export default Ember.ArrayController.extend({
 	notificationSound: null,
 
 	connections: null,
+	cleanupBind: null,
 
 	_initConnections: function() {
+		this.set('cleanupBind', this.cleanup.bind(this));
+		Ember.$(window).on('beforeunload', this.get('cleanupBind'));
 		this.set('connections', Ember.Map.create());
 	}.on('init'),
 
@@ -244,6 +255,14 @@ export default Ember.ArrayController.extend({
 			this.notificationSound.preload = 'auto';
 		}
 	}.on('init'),
+
+	cleanup: function() {
+		Ember.Logger.debug('[connections]', 'Cleaning up connections...');
+		this.get('connections').forEach(function(connection, key) {
+			connection.disconnect(true);
+		}, this);
+		Ember.$(window).off('beforeunload', this.get('cleanupBind'));
+	}.on('willDestroy'),
 
 	model: function() {
 		Ember.Logger.debug('[connections]', 'Fetching accounts...');
