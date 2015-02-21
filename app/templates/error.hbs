@@ -7,5 +7,9 @@
 {{#paper-content classNames="md-padding"}}
 	<h3>An error has occured.</h3>
 	<p>Technical details:</p>
-	<pre>{{model}}</pre>
+	{{#if message}}
+		<pre>{{message}}</pre>
+	{{else}}
+		<pre>{{this}}</pre>
+	{{/if}}
 {{/paper-content}}
