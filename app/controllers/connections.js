@@ -27,12 +27,12 @@ var Connection = Ember.Object.extend({
 		connection.connect(connectJID, this.get('account.password'), this.onConnect.bind(this));
 	},
 
-	disconnect: function(sync) {
+	disconnect: function(sync, reason) {
 		Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Disconnecting...');
 
 		this.connection._options.sync = sync;
 		this.connection.flush();
-		this.connection.disconnect();
+		this.connection.disconnect(reason);
 	},
 
 	sendMessage: function(to, body) {
@@ -238,11 +238,11 @@ export default Ember.ArrayController.extend({
 	notificationSound: null,
 
 	connections: null,
-	cleanupBind: null,
+	unloadBind: null,
 
 	_initConnections: function() {
-		this.set('cleanupBind', this.cleanup.bind(this));
-		Ember.$(window).on('beforeunload', this.get('cleanupBind'));
+		this.set('unloadBind', this.cleanup.bind(this, 'Page closed.'));
+		Ember.$(window).on('beforeunload', this.get('unloadBind'));
 		this.set('connections', Ember.Map.create());
 	}.on('init'),
 
@@ -256,12 +256,12 @@ export default Ember.ArrayController.extend({
 		}
 	}.on('init'),
 
-	cleanup: function() {
+	cleanup: function(reason) {
 		Ember.Logger.debug('[connections]', 'Cleaning up connections...');
 		this.get('connections').forEach(function(connection, key) {
 			connection.disconnect(true);
 		}, this);
-		Ember.$(window).off('beforeunload', this.get('cleanupBind'));
+		Ember.$(window).off('beforeunload', this.get('unloadBind'));
 	}.on('willDestroy'),
 
 	model: function() {
