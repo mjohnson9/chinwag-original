@@ -208,9 +208,7 @@ var Connection = Ember.Object.extend({
 			notification.onclick = this.onNotificationClicked(fromBare, notification).bind(this);
 		}
 
-		if(this.controller.notificationSound != null) {
-			this.controller.playNotificationSound();
-		}
+		this.controller.playNotificationSound();
 
 		return true;
 	},
