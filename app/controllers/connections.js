@@ -209,7 +209,7 @@ var Connection = Ember.Object.extend({
 		}
 
 		if(this.controller.notificationSound != null) {
-			this.controller.notificationSound.play();
+			this.controller.playNotificationSound();
 		}
 
 		return true;
@@ -312,5 +312,12 @@ export default Ember.ArrayController.extend({
 
 	accountRemoved: function(account) {
 		Ember.Logger.debug('[connections]', 'Account removed:', account);
+	},
+
+	playNotificationSound: function() {
+		if(this.notificationSound != null) {
+			this.notificationSound.currentTime = 0;
+			this.notificationSound.play();
+		}
 	}
 });
