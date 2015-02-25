@@ -3,7 +3,7 @@
  <title>Chinwag</title>
  <g>
   <title>Chinwag icon</title>
-  <rect fill="#c8e6c9" stroke-width="null" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" stroke-opacity="0" x="10.985321" y="10.566055" width="26.229584" height="19.021454" id="Background color" stroke="#000000"/>
+  <rect fill="#ffffff" stroke-width="null" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" stroke-opacity="0" x="10.985321" y="10.566055" width="26.229584" height="19.021454" id="Background color" stroke="#000000"/>
   <path stroke-opacity="0" stroke="#000000" fill="#2e7d32" id="Chat icon" d="m40,4l-32,0c-2.21,0 -3.98,1.79 -3.98,4l-0.02,36l8,-8l28,0c2.209999,0 4,-1.790001 4,-4l0,-24c0,-2.21 -1.790001,-4 -4,-4zm-28,14l24,0l0,4l-24,0l0,-4zm16,10l-16,0l0,-4l16,0l0,4zm8,-12l-24,0l0,-4l24,0l0,4z"/>
  </g>
 </svg>
