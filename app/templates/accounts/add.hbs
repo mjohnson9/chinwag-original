@@ -1,0 +1,22 @@
+{{#paper-toolbar}}
+	<div class="md-toolbar-tools">
+		{{#link-to "accounts" class="toolbar-back"}}{{paper-icon icon="arrow-back"}}{{/link-to}}
+		<span>Add an account</span>
+	</div>
+{{/paper-toolbar}}
+{{#paper-content class="primary-content"}}
+	<form {{action "addAccount" on="submit"}}>
+		<div class="form-content">
+			{{paper-text label="Jabber ID" type="email" value=jid required=true disabled=formDisabled}}
+			{{paper-text label="Password" type="password" value=password required=true disabled=formDisabled}}
+		</div>
+		{{#if error}}
+			<div class="form-error">
+				{{error}}
+			</div>
+		{{/if}}
+		<div class="form-buttons">
+			{{#paper-button type="submit" classNames="md-primary" disabled=formDisabled}}Add account{{/paper-button}}
+		</div>
+	</form>
+{{/paper-content}}

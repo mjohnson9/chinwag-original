@@ -23,7 +23,7 @@ module.exports = function(environment) {
 			'default-src': "'none'",
 			'script-src': "'self'",
 			'font-src': "'self' https://fonts.gstatic.com/s/robotodraft/",
-			'connect-src': "'self'",
+			'connect-src': "*",
 			'img-src': "'self' data:",
 			'style-src': "'self'",
 			'media-src': "'self'"

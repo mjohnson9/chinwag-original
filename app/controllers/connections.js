@@ -5,6 +5,13 @@ import { $build, $msg, $iq, $pres } from 'strophe';
 import UUID from '../utils/uuid';
 import config from '../config/environment';
 
+var statusMap = {};
+for(var statusName in Strophe.Status) {
+	if(!Strophe.Status.hasOwnProperty(statusName)) { continue; }
+
+	statusMap[Strophe.Status[statusName]] = statusName;
+}
+
 var Connection = Ember.Object.extend({
 	account: null,
 
@@ -12,8 +19,10 @@ var Connection = Ember.Object.extend({
 	controller: null,
 	store: null,
 
+	connectionStatus: undefined,
+
 	connect: function() {
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Initiating connection via '+this.get('account.boshURL')+'...');
+		console.debug('[connections]', '['+this.get('account.id')+']', 'Initiating connection via '+this.get('account.boshURL')+'...');
 
 		var connection = new Strophe.Connection(this.get('account.boshURL'));
 		if(config.APP.LOG_RAW_XMPP) {
@@ -28,7 +37,7 @@ var Connection = Ember.Object.extend({
 	},
 
 	disconnect: function(sync, reason) {
-		Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Disconnecting...');
+		console.warn('[connections]', '['+this.get('account.id')+']', 'Disconnecting...');
 
 		this.connection._options.sync = sync;
 		this.connection.flush();
@@ -43,7 +52,7 @@ var Connection = Ember.Object.extend({
 
 		var contact = this.store.getById('contact', to);
 		if(contact == null) {
-			Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Sent message to unknown contact:', to);
+			console.warn('[connections]', '['+this.get('account.id')+']', 'Sent message to unknown contact:', to);
 
 			contact = this.store.createRecord('contact', {
 				id: to,
@@ -65,44 +74,45 @@ var Connection = Ember.Object.extend({
 
 			message: body
 		};
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Sent chat message to', to, message);
+		console.debug('[connections]', '['+this.get('account.id')+']', 'Sent chat message to', to, message);
 		contact.get('messages').pushObject(this.store.createRecord('message', message));
 	},
 
 	stropheRawIn: function(data) {
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', '[RECV]', data);
+		console.debug('[connections]', '['+this.get('account.id')+']', '[RECV]', data);
 	},
 
 	stropheRawOut: function(data) {
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', '[SEND]', data);
+		console.debug('[connections]', '['+this.get('account.id')+']', '[SEND]', data);
 	},
 
 	onConnect: function(status) {
+		this.set('connectionStatus', statusMap[status]);
 		switch(status) {
 			case Strophe.Status.CONNECTING:
-				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Connecting...');
+				console.debug('[connections]', '['+this.get('account.id')+']', 'Connecting...');
 				break;
 			case Strophe.Status.ERROR:
-				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Connection error.');
+				console.warn('[connections]', '['+this.get('account.id')+']', 'Connection error.');
 				break;
 			case Strophe.Status.AUTHFAIL:
-				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Authentication failed.');
+				console.warn('[connections]', '['+this.get('account.id')+']', 'Authentication failed.');
 				break;
 			case Strophe.Status.CONNFAIL:
-				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Connection to XMPP server failed.');
+				console.warn('[connections]', '['+this.get('account.id')+']', 'Connection to XMPP server failed.');
 				break;
 			case Strophe.Status.DISCONNECTING:
-				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Disconnecting...');
+				console.debug('[connections]', '['+this.get('account.id')+']', 'Disconnecting...');
 				break;
 			case Strophe.Status.DISCONNECTED:
-				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Disconnected.');
+				console.debug('[connections]', '['+this.get('account.id')+']', 'Disconnected.');
 				break;
 			case Strophe.Status.CONNECTED:
-				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Connected.');
+				console.debug('[connections]', '['+this.get('account.id')+']', 'Connected.');
 				this.onConnected();
 				break;
 			default:
-				Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Unknown status:', status);
+				console.warn('[connections]', '['+this.get('account.id')+']', 'Unhandled status:', status);
 				break;
 		}
 	},
@@ -118,11 +128,11 @@ var Connection = Ember.Object.extend({
 		this.connection.addHandler(this.onPresenceChange.bind(this), null, 'presence');
 
 		// Send our initial presence
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Sending initial presence...');
+		console.debug('[connections]', '['+this.get('account.id')+']', 'Sending initial presence...');
 		this.connection.send($pres());
 
 		// Ask the server for our roster
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Retrieving roster...');
+		console.debug('[connections]', '['+this.get('account.id')+']', 'Retrieving roster...');
 		this.connection.sendIQ($iq({type: 'get'}).c('query', {xmlns: Strophe.NS.ROSTER}), this.onRosterResults.bind(this));
 	},
 
@@ -151,7 +161,7 @@ var Connection = Ember.Object.extend({
 				record.get('accounts').pushObject(this.get('account'));
 
 				this.get('account.contacts').pushObject(record);
-				Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Added contact:', item);
+				console.debug('[connections]', '['+this.get('account.id')+']', 'Added contact:', item);
 				return;
 			}
 
@@ -159,7 +169,7 @@ var Connection = Ember.Object.extend({
 			record.set('subscription', item.subscription);
 			record.get('accounts').pushObject(this.get('account'));
 
-			Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Updated contact:', item);
+			console.debug('[connections]', '['+this.get('account.id')+']', 'Updated contact:', item);
 		}.bind(this));
 
 		return true;
@@ -173,7 +183,7 @@ var Connection = Ember.Object.extend({
 
 		var contact = this.store.getById('contact', fromBare);
 		if(contact == null) {
-			Ember.Logger.warn('[connections]', '['+this.get('account.id')+']', 'Received message from unknown contact:', fromBare);
+			console.warn('[connections]', '['+this.get('account.id')+']', 'Received message from unknown contact:', fromBare);
 
 			contact = this.store.createRecord('contact', {
 				id: fromBare,
@@ -195,7 +205,7 @@ var Connection = Ember.Object.extend({
 
 			message: stanza.find('body').text()
 		};
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Received chat message:', message);
+		console.debug('[connections]', '['+this.get('account.id')+']', 'Received chat message:', message);
 		contact.get('messages').pushObject(this.store.createRecord('message', message));
 
 		if(window.Notification != null) {
@@ -222,12 +232,12 @@ var Connection = Ember.Object.extend({
 	},
 
 	onRosterChange: function(stanza) {
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Received roster change:', stanza);
+		console.debug('[connections]', '['+this.get('account.id')+']', 'Received roster change:', stanza);
 		return true;
 	},
 
 	onPresenceChange: function(stanza) {
-		Ember.Logger.debug('[connections]', '['+this.get('account.id')+']', 'Received presence change:', stanza);
+		console.debug('[connections]', '['+this.get('account.id')+']', 'Received presence change:', stanza);
 		return true;
 	}
 });
@@ -255,7 +265,7 @@ export default Ember.ArrayController.extend({
 	}.on('init'),
 
 	cleanup: function(reason) {
-		Ember.Logger.debug('[connections]', 'Cleaning up connections...');
+		console.debug('[connections]', 'Cleaning up connections...');
 		this.get('connections').forEach(function(connection, key) {
 			connection.disconnect(true);
 		}, this);
@@ -263,7 +273,7 @@ export default Ember.ArrayController.extend({
 	}.on('willDestroy'),
 
 	model: function() {
-		Ember.Logger.debug('[connections]', 'Fetching accounts...');
+		console.debug('[connections]', 'Fetching accounts...');
 		return this.store.filter('account', {}, function() {
 			return true;
 		});
@@ -279,6 +289,7 @@ export default Ember.ArrayController.extend({
 			return;
 		}
 		if(removeCount > 0) {
+			console.debug('[connections]', 'Removed:', content, start, removeCount, addCount);
 			return;
 		}
 
@@ -286,9 +297,9 @@ export default Ember.ArrayController.extend({
 	},
 
 	newAccount: function(account) {
-		Ember.Logger.debug('[connections]', 'New account:', account);
+		console.debug('[connections]', 'New account:', account);
 
-		var connections = this.get('connections');
+		/*var connections = this.get('connections');
 
 		var fullJID = account.get('id');
 		var resource = account.get('resource');
@@ -305,11 +316,11 @@ export default Ember.ArrayController.extend({
 
 		connections.set(account.get('id'), connection);
 
-		connection.connect();
+		connection.connect();*/
 	},
 
 	accountRemoved: function(account) {
-		Ember.Logger.debug('[connections]', 'Account removed:', account);
+		console.debug('[connections]', 'Account removed:', account);
 	},
 
 	playNotificationSound: function() {

@@ -1,0 +1,13 @@
+form {
+	.form-content {
+
+	}
+
+	.form-error {
+		color: map-get($warn-color-palette, "700");
+	}
+
+	.form-buttons {
+		text-align: right;
+	}
+}

@@ -154,17 +154,17 @@ export default Ember.Component.extend({
 		this.set('timeAgo', formatData.text);
 
 		if(formatData.nextChange != null) {
-			Ember.Logger.debug('[time-ago]', calculatedTime.format(), 'Updating in '+(formatData.nextChange+1)+'ms');
+			console.debug('[time-ago]', calculatedTime.format(), 'Updating in '+(formatData.nextChange+1)+'ms');
 			this.set('timer', Ember.run.later(this, this.clock, formatData.nextChange+1));
 		} else {
-			Ember.Logger.debug('[time-ago]', calculatedTime.format(), 'Never updating again');
+			console.debug('[time-ago]', calculatedTime.format(), 'Never updating again');
 		}
 	},
 
 	cancelClock: function() {
 		var timer = this.get('timer');
 		if(timer != null) {
-			Ember.Logger.debug('[time-ago]', this.get('calculatedTime').format(), 'Timer cancelled');
+			console.debug('[time-ago]', this.get('calculatedTime').format(), 'Timer cancelled');
 			Ember.run.cancel(timer);
 			this.set('timer', undefined);
 		}

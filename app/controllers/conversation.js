@@ -17,7 +17,7 @@ export default Ember.ObjectController.extend({
 
 			var account = this.get('accounts').objectAt(0);
 			if(account == null) {
-				Ember.Logger.error('[conversation]', 'Cannot find account for contact:', this.get('id'));
+				console.error('[conversation]', 'Cannot find account for contact:', this.get('id'));
 				return;
 			}
 

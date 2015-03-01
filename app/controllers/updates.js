@@ -19,7 +19,7 @@ var UpdateStatus = Ember.Object.extend({
 			this.set('progress', undefined);
 		}
 		this.set('lastChange', moment());
-		Ember.Logger.debug('[application-cache]', 'New status:', this.get('status'));
+		console.debug('[application-cache]', 'New status:', this.get('status'));
 	},
 
 	setProgress: function(progress) {
@@ -41,14 +41,14 @@ export default Ember.Controller.extend({
 		this.set('status', UpdateStatus.create());
 		this.set('supported', window.applicationCache != null);
 		if(!this.get('supported')) {
-			Ember.Logger.warn('[application-cache]', 'Not supported');
+			console.warn('[application-cache]', 'Not supported');
 		}
 	}.on('init'),
 
 	_updateStatus: function(e) {
 		var status = this.get('status');
 
-		//Ember.Logger.debug('[application-cache]', 'event:', e.type, e);
+		//console.debug('[application-cache]', 'event:', e.type, e);
 		switch(e.type) {
 			case 'noupdate':
 			case 'cached':
@@ -68,13 +68,13 @@ export default Ember.Controller.extend({
 				break;
 			case 'error':
 				status.setStatus('error');
-				Ember.Logger.error('[application-cache]', 'error:', e.message);
+				console.error('[application-cache]', 'error:', e.message);
 				if(window.applicationCache.status === window.applicationCache.IDLE) {
 					this.set('lastCheck', moment());
 				}
 				break;
 			default:
-				Ember.Logger.warn('[application-cache]', 'Unhandled event type:', e.type);
+				console.warn('[application-cache]', 'Unhandled event type:', e.type);
 				status.setStatus(e.type);
 				break;
 		}
@@ -87,7 +87,7 @@ export default Ember.Controller.extend({
 		}
 
 		var nextCheck = moment(lastCheck).add(this.checkInterval+(Math.random()*this.checkInaccuracy));
-		Ember.Logger.debug('[application-cache]', 'Next update check at', nextCheck.format());
+		console.debug('[application-cache]', 'Next update check at', nextCheck.format());
 		return nextCheck;
 	}.property('lastCheck'),
 
@@ -105,7 +105,7 @@ export default Ember.Controller.extend({
 	_cancelClock: function() {
 		var timer = this.get('timer');
 		if(timer != null) {
-			Ember.Logger.debug('[application-cache]', 'Update timer canceled');
+			console.debug('[application-cache]', 'Update timer canceled');
 			Ember.run.cancel(timer);
 			this.set('timer', undefined);
 		}
@@ -114,7 +114,7 @@ export default Ember.Controller.extend({
 	_teardownEventListeners: function() {
 		if(this._updateStatusClosure != null) {
 			for(var i = 0; i < applicationCacheEvents.length; i++) {
-				Ember.Logger.debug('[application-cache]', 'Removed listener for', applicationCacheEvents[i]);
+				console.debug('[application-cache]', 'Removed listener for', applicationCacheEvents[i]);
 				window.applicationCache.removeEventListener(applicationCacheEvents[i], this._updateStatusClosure, false);
 			}
 
@@ -139,7 +139,7 @@ export default Ember.Controller.extend({
 		this._updateStatusClosure = this._updateStatus.bind(this);
 
 		for(var i = 0; i < applicationCacheEvents.length; i++) {
-			Ember.Logger.debug('[application-cache]', 'Added listener for', applicationCacheEvents[i]);
+			console.debug('[application-cache]', 'Added listener for', applicationCacheEvents[i]);
 			window.applicationCache.addEventListener(applicationCacheEvents[i], this._updateStatusClosure, false);
 		}
 	}.observes('supported')

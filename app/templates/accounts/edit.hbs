@@ -1,0 +1,16 @@
+{{#paper-toolbar}}
+	<div class="md-toolbar-tools">
+		{{#link-to "accounts" class="toolbar-back"}}{{paper-icon icon="arrow-back"}}{{/link-to}}
+		<span flex>{{id}}</span>
+		{{#paper-button action="deleteAccount"}}{{paper-icon icon="delete"}}{{/paper-button}}
+	</div>
+{{/paper-toolbar}}
+{{#paper-content class="primary-content"}}
+	<form {{action "addAccount" on="submit"}}>
+		<div class="form-content">
+			{{paper-text label="Jabber ID" type="email" value=id required=true disabled=true}}
+			{{paper-text label="Password" type="password" value=password required=true disabled=true}}
+			<!-- TODO: Make password editable -->
+		</div>
+	</form>
+{{/paper-content}}

@@ -24,7 +24,7 @@ Strophe.log = function(level, msg) {
 			logFunction = 'error';
 			break;
 		case Strophe.LogLevel.FATAL:
-			Ember.Logger.error('[FATAL]', '[strophe]', msg);
+			console.error('[FATAL]', '[strophe]', msg);
 			break;
 		default:
 			throw 'unknown log level: '+level;

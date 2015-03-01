@@ -6,7 +6,14 @@ var Router = Ember.Router.extend({
 });
 
 Router.map(function() {
-	this.route('settings');
+	this.resource('settings', function() {
+		this.resource('accounts', function() {
+			this.route('add');
+			this.route('edit', {path: '/:account_id'});
+		});
+
+		this.route('updates');
+	});
 
 	this.resource('conversation', {path: '/conversation/:contact_id'});
 });

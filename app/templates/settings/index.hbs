@@ -1,0 +1,31 @@
+{{#paper-toolbar}}
+	<div class="md-toolbar-tools">
+		{{#link-to "index" class="toolbar-back"}}{{paper-icon icon="arrow-back"}}{{/link-to}}
+		<span>Settings</span>
+	</div>
+{{/paper-toolbar}}
+{{#paper-list class="settings-list"}}
+	{{#link-to 'accounts'}}
+		{{#paper-item}}
+			{{#paper-tile-content}}
+				<h3>Accounts</h3>
+			{{/paper-tile-content}}
+		{{/paper-item}}
+	{{/link-to}}
+	{{paper-divider}}
+	{{#link-to 'settings.updates'}}
+		{{#paper-item}}
+			{{#paper-tile-content}}
+				<h3>Updates</h3>
+			{{/paper-tile-content}}
+		{{/paper-item}}
+	{{/link-to}}
+	{{paper-divider}}
+	{{#paper-item}}
+		{{#paper-tile-content}}
+			<h3>Version</h3>
+			<p>Chinwag {{version}}</p>
+		{{/paper-tile-content}}
+	{{/paper-item}}
+	{{paper-divider}}
+{{/paper-list}}

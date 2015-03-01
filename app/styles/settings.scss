@@ -1,0 +1,21 @@
+.settings-list {
+	>a {
+		text-decoration: none;
+
+		color: $text-color-primary;
+
+		:active {
+			background-color: $grey-light;
+		}
+	}
+
+	.paper-item {
+		h3 {
+			color: $text-color-primary;
+		}
+
+		p {
+			color: $text-color-secondary;
+		}
+	}
+}

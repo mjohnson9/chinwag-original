@@ -7,10 +7,4 @@ var Account = DS.Model.extend({
 	contacts: DS.hasMany('contact')
 });
 
-Account.reopenClass({
-	FIXTURES: [
-		{id: 'test@nightexcessive.us', password: 'asdf1234', boshURL: 'https://chinwag.nightexcessive.us/http-bind'}
-	]
-});
-
 export default Account;

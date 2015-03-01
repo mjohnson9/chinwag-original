@@ -57,6 +57,9 @@ var app = new EmberApp({
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
+// Add localStorage adapter
+//app.import('bower_components/ember-localstorage-adapter/localstorage_adapter.js');
+
 // Add moment.js w/ locales + moment.js timezones
 app.import(app.bowerDirectory + '/moment/min/moment-with-locales.js');
 app.import(app.bowerDirectory + '/ember-cli-moment-shim/moment-shim.js', {

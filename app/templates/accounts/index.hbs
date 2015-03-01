@@ -1,0 +1,30 @@
+{{#paper-toolbar}}
+	<div class="md-toolbar-tools">
+		{{#link-to "settings" class="toolbar-back"}}{{paper-icon icon="arrow-back"}}{{/link-to}}
+		<span>Accounts</span>
+	</div>
+{{/paper-toolbar}}
+{{#paper-list class="settings-list"}}
+	{{#each account in controller}}
+		{{#link-to "accounts.edit" account}}
+			{{#paper-item}}
+				{{#paper-tile-content}}
+					<h3>{{account.id}}</h3>
+					<p>{{account.status}}</p>
+				{{/paper-tile-content}}
+			{{/paper-item}}
+		{{/link-to}}
+		{{paper-divider}}
+	{{/each}}
+	{{#link-to "accounts.add"}}
+		{{#paper-item}}
+			{{#paper-tile-left}}
+				{{paper-icon icon="add"}}
+			{{/paper-tile-left}}
+			{{#paper-tile-content}}
+				<h3>Add account</h3>
+			{{/paper-tile-content}}
+		{{/paper-item}}
+	{{/link-to}}
+	{{paper-divider}}
+{{/paper-list}}
