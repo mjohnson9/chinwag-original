@@ -1,0 +1,20 @@
+{{#paper-toolbar}}
+	<div class="md-toolbar-tools">
+		{{#link-to "settings" class="toolbar-back"}}{{paper-icon icon="arrow-back"}}{{/link-to}}
+		<span>Updates</span>
+	</div>
+{{/paper-toolbar}}
+{{#paper-item}}
+	{{#paper-tile-content}}
+		{{#if updateShowRefresh}}
+			<h3>{{#paper-button raised=true class="md-primary" action="refreshPage"}}Refresh{{/paper-button}}</h3>
+		{{else}}
+			<h3>{{#paper-button raised=true action="checkForUpdates" disabled=updateDisabled}}Check for updates{{/paper-button}}</h3>
+		{{/if}}
+		{{#if showLastCheck}}
+			<p>Last checked for updates {{time-ago long=true createdAt=updateLastCheck}} ago. Next check in {{time-ago long=true createdAt=updateNextCheck}}.</p>
+		{{else}}
+			<p>{{updateStatus}}</p>
+		{{/if}}
+	{{/paper-tile-content}}
+{{/paper-item}}
