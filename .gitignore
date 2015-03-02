@@ -4,6 +4,9 @@
 /dist
 /tmp
 
+# sublime text
+*.sublime-workspace
+
 # dependencies
 /node_modules
 /bower_components

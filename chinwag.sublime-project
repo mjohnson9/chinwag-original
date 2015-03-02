@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"name": "Chinwag",
+			"path": ".",
+			"follow_symlinks": true,
+
+			"folder_exclude_patterns": [
+				"bower_components",
+				"dist",
+				"node_modules",
+				"tmp"
+			],
+
+			"file_exclude_patterns": [
+				".bowerrc",
+				".ember-cli",
+				".gitkeep"
+			]
+		}
+	],
+
+	"settings": {
+		// indentation
+		"tab_size": 4,
+		"translate_tabs_to_spaces": false,
+
+		// Cleanup
+		"trim_trailing_white_space_on_save": true,
+		"ensure_newline_at_eof_on_save": true,
+
+		// always use LF endings, even on Windows
+		"default_line_ending": "unix"
+	}
+}
