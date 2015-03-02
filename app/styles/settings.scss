@@ -17,5 +17,16 @@
 		p {
 			color: $text-color-secondary;
 		}
+
+		.md-tile-left {
+			md-icon {
+				margin: 16px;
+				width: 48px;
+				text-align: center;
+				vertical-align: middle;
+				font-size: 1.7em;
+				//line-height: 0.5em;
+			}
+		}
 	}
 }

@@ -1,15 +1,15 @@
 import DS from 'ember-data';
 
-var Contact = DS.Model.extend({
-	accounts: DS.hasMany('account'),
+export default DS.Model.extend({
+	account: DS.belongsTo('account'),
 
 	name: DS.attr('string'), // Contact's display name
-	avatar: DS.attr('string'), // data: avatar
+	avatar: DS.attr('string'), // Avatar URL
 	subscription: DS.attr('string'),
+
+	conversation: DS.belongsTo('conversation'),
 
 	resources: DS.hasMany('resource'),
 
 	messages: DS.hasMany('message')
 });
-
-export default Contact;

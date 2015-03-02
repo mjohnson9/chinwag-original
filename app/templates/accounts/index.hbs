@@ -8,6 +8,9 @@
 	{{#each account in controller}}
 		{{#link-to "accounts.edit" account}}
 			{{#paper-item}}
+				{{#paper-tile-left}}
+					{{avatar-tile name=account.id class="face"}}
+				{{/paper-tile-left}}
 				{{#paper-tile-content}}
 					<h3>{{account.id}}</h3>
 					<p>{{account.status}}</p>

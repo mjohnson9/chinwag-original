@@ -1,9 +1,8 @@
 import Ember from 'ember';
 import Strophe from 'strophe';
-//import { $msg, $iq, $pres } from 'strophe';
+import { $msg, $iq, $pres } from 'strophe';
 
-//import UUID from '../utils/uuid';
-//import config from '../config/environment';
+import config from '../config/environment';
 
 var statusMap = {};
 for(var statusName in Strophe.Status) {
@@ -12,7 +11,7 @@ for(var statusName in Strophe.Status) {
 	statusMap[Strophe.Status[statusName]] = statusName;
 }
 
-/*var Connection = Ember.Object.extend({
+var Connection = Ember.Object.extend({
 	account: null,
 
 	connection: null,
@@ -64,7 +63,7 @@ for(var statusName in Strophe.Status) {
 		}
 
 		var message = {
-			id: UUID(),
+			//id: UUID(),
 			contact: contact,
 
 			from: this.get('account.id'),
@@ -154,12 +153,12 @@ for(var statusName in Strophe.Status) {
 			var record = store.getById('contact', this.get('account.id')+':'+item.jid);
 			if(record == null) {
 				record = store.createRecord('contact', {
-					id: item.jid,
+					id: this.get('account.id')+':'+item.jid,
 					name: item.name,
-					subscription: item.subscription
+					subscription: item.subscription,
+					account: this.get('account')
 				});
-				record.get('accounts').pushObject(this.get('account'));
-
+				record.save();
 				this.get('account.contacts').pushObject(record);
 				console.debug('[connections]', '['+this.get('account.id')+']', 'Added contact:', item);
 				return;
@@ -181,21 +180,35 @@ for(var statusName in Strophe.Status) {
 		var from = stanza.attr('from');
 		var fromBare = Strophe.getBareJidFromJid(from);
 
-		var contact = this.store.getById('contact', fromBare);
+		var contact = this.store.getById('contact', this.get('account.id')+':'+fromBare);
 		if(contact == null) {
 			console.warn('[connections]', '['+this.get('account.id')+']', 'Received message from unknown contact:', fromBare);
 
 			contact = this.store.createRecord('contact', {
-				id: fromBare,
+				id: this.get('account.id')+':'+fromBare,
 				name: fromBare,
 				subscription: 'none'
 			});
 			contact.get('accounts').pushObject(this.get('account'));
+			contact.save();
 			this.get('account.contacts').pushObject(contact);
+			this.get('account').save();
+		}
+		if(contact.conversation == null) {
+			contact.conversation = this.store.createRecord('conversation', {
+				id: contact.get('id')+':conversation',
+				account: this.get('account'),
+				contact: contact
+			});
+			contact.conversation.save();
+			contact.save();
+			this.get('account.conversations').pushObject(contact.conversation);
+			this.get('account').save();
 		}
 
 		var message = {
-			id: UUID(),
+			//id: UUID(),
+			id: contact.conversation.get('id')+':'+stanza.attr('id'),
 			contact: contact,
 
 			from: from,
@@ -240,7 +253,7 @@ for(var statusName in Strophe.Status) {
 		console.debug('[connections]', '['+this.get('account.id')+']', 'Received presence change:', stanza);
 		return true;
 	}
-});*/
+});
 
 export default Ember.ArrayController.extend({
 	notificationSound: null,
@@ -299,7 +312,7 @@ export default Ember.ArrayController.extend({
 	newAccount: function(account) {
 		console.debug('[connections]', 'New account:', account);
 
-		/*var connections = this.get('connections');
+		var connections = this.get('connections');
 
 		var fullJID = account.get('id');
 		var resource = account.get('resource');
@@ -316,7 +329,7 @@ export default Ember.ArrayController.extend({
 
 		connections.set(account.get('id'), connection);
 
-		connection.connect();*/
+		connection.connect();
 	},
 
 	accountRemoved: function(account) {
