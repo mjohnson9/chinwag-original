@@ -48,6 +48,12 @@ export default Ember.Controller.extend({
 	error: undefined,
 	formDisabled: false,
 
+	jid: undefined,
+	password: undefined,
+	boshURL: jappixBOSH,
+
+	showAdvanced: false,
+
 	setError: function(error) {
 		this.setProperties({
 			error: error,
@@ -56,6 +62,16 @@ export default Ember.Controller.extend({
 	},
 
 	accountSaved: function(account) {
+		this.setProperties({
+			error: undefined,
+			formDisabled: false,
+
+			jid: undefined,
+			password: undefined,
+			boshURL: jappixBOSH,
+			showAdvanced: false
+		});
+
 		this.transitionToRoute('accounts.edit', account);
 	},
 
@@ -94,7 +110,7 @@ export default Ember.Controller.extend({
 			var account = {
 				id: this.get('jid'),
 				password: this.get('password'),
-				boshURL: jappixBOSH
+				boshURL: this.get('boshURL')
 			};
 
 			checkAccount(account).then(this.accountCheckSuccess.bind(this, account)).catch(this.accountCheckFailed.bind(this));

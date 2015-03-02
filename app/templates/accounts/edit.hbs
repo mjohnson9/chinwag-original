@@ -9,8 +9,12 @@
 	<form {{action "addAccount" on="submit"}}>
 		<div class="form-content">
 			{{paper-text label="Jabber ID" type="email" value=id required=true disabled=true}}
-			{{paper-text label="Password" type="password" value=password required=true disabled=true}}
 			<!-- TODO: Make password editable -->
+			{{paper-text label="Password" type="password" value=password required=true disabled=true}}
+			{{#paper-checkbox checked=showAdvanced}}Advanced settings{{/paper-checkbox}}
+			{{#if showAdvanced}}
+				{{paper-text label="BOSH server" type="url" value=boshURL required=true disabled=true}}
+			{{/if}}
 		</div>
 	</form>
 {{/paper-content}}

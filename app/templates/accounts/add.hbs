@@ -9,6 +9,10 @@
 		<div class="form-content">
 			{{paper-text label="Jabber ID" type="email" value=jid required=true disabled=formDisabled}}
 			{{paper-text label="Password" type="password" value=password required=true disabled=formDisabled}}
+			{{#paper-checkbox checked=showAdvanced}}Advanced settings{{/paper-checkbox}}
+			{{#if showAdvanced}}
+				{{paper-text label="BOSH server" type="url" value=boshURL required=true disabled=formDisabled}}
+			{{/if}}
 		</div>
 		{{#if error}}
 			<div class="form-error">
