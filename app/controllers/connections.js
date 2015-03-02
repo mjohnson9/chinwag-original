@@ -1,9 +1,9 @@
 import Ember from 'ember';
 import Strophe from 'strophe';
-import { $build, $msg, $iq, $pres } from 'strophe';
+//import { $msg, $iq, $pres } from 'strophe';
 
-import UUID from '../utils/uuid';
-import config from '../config/environment';
+//import UUID from '../utils/uuid';
+//import config from '../config/environment';
 
 var statusMap = {};
 for(var statusName in Strophe.Status) {
@@ -12,7 +12,7 @@ for(var statusName in Strophe.Status) {
 	statusMap[Strophe.Status[statusName]] = statusName;
 }
 
-var Connection = Ember.Object.extend({
+/*var Connection = Ember.Object.extend({
 	account: null,
 
 	connection: null,
@@ -240,7 +240,7 @@ var Connection = Ember.Object.extend({
 		console.debug('[connections]', '['+this.get('account.id')+']', 'Received presence change:', stanza);
 		return true;
 	}
-});
+});*/
 
 export default Ember.ArrayController.extend({
 	notificationSound: null,
@@ -266,8 +266,8 @@ export default Ember.ArrayController.extend({
 
 	cleanup: function(reason) {
 		console.debug('[connections]', 'Cleaning up connections...');
-		this.get('connections').forEach(function(connection, key) {
-			connection.disconnect(true);
+		this.get('connections').forEach(function(connection) {
+			connection.disconnect(true, reason);
 		}, this);
 		Ember.$(window).off('beforeunload', this.get('unloadBind'));
 	}.on('willDestroy'),
