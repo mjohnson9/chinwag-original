@@ -5,8 +5,10 @@ export default Ember.ObjectController.extend({
 
 	accountController: function() {
 		var connectionMap = this.get('controllers.connections.connections');
-		return connectionMap.get(this.get('model.id'));
-	}.property('model.id'),
+		var connection = connectionMap.get(this.get('model.id'));
+		console.warn('connection:', connection);
+		return connection;
+	}.property('model.id', 'controllers.connections.connections'),
 
-	status: Ember.computed.oneWay('accountController.connectionStatus')
+	status: Ember.computed.oneWay('accountController.connection.connection.status')
 });

@@ -1,48 +1,9 @@
 import Ember from 'ember';
-import Strophe from 'strophe';
+
+import {checkAccount} from 'chinwag/utils/connection';
 
 var jappixBOSH = 'wss://websocket.jappix.com/';
-
-function checkAccount(account) {
-	return new Ember.RSVP.Promise(function(resolve, reject) {
-		var connection = new Strophe.Connection(account.boshURL);
-		connection.connect(account.id, account.password, function(status) {
-			switch(status) {
-				case Strophe.Status.CONNECTING:
-					break;
-				case Strophe.Status.CONNECTED:
-					resolve();
-					connection.disconnect();
-					break;
-				case Strophe.Status.CONNFAIL:
-					reject({
-						message: 'Failed to connect',
-						internalMessage: 'CONNFAIL'
-					});
-					connection.disconnect();
-					break;
-				case Strophe.Status.AUTHFAIL:
-					reject({
-						message: 'Incorrect username or password',
-						internalMessage: 'AUTHFAIL'
-					});
-					connection.disconnect();
-					break;
-				case Strophe.Status.DISCONNECTING:
-				case Strophe.Status.DISCONNECTED:
-					break;
-				default:
-					console.error('[accounts.add]', '[checkAccount]', 'Unhandled status:', status);
-					reject({
-						message: 'Internal error',
-						internalMessage: 'Unhandled status: '+status
-					});
-					connection.disconnect();
-					break;
-			}
-		});
-	});
-}
+//var jappixBOSH = 'https://bind.jappix.com/';
 
 export default Ember.Controller.extend({
 	error: undefined,

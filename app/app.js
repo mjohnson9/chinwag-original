@@ -9,28 +9,26 @@ Strophe.log = function(level, msg) {
 		return;
 	}
 
-	var logFunction;
 	switch(level) {
 		case Strophe.LogLevel.DEBUG:
-			logFunction = 'debug';
+			console.debug('[strophe] %s', msg);
 			break;
 		case Strophe.LogLevel.INFO:
-			logFunction = 'info';
+			console.info('[strophe] %s', msg);
 			break;
 		case Strophe.LogLevel.WARN:
-			logFunction = 'warn';
+			console.warn('[strophe] %s', msg);
 			break;
 		case Strophe.LogLevel.ERROR:
-			logFunction = 'error';
+			console.error('[strophe] %s', msg);
 			break;
 		case Strophe.LogLevel.FATAL:
-			console.error('[FATAL]', '[strophe]', msg);
+			console.error('[FATAL] [strophe] %s', msg);
 			break;
 		default:
 			throw 'unknown log level: '+level;
+			break;
 	}
-
-	Ember.Logger[logFunction]('[strophe]', msg);
 };
 
 Ember.MODEL_FACTORY_INJECTIONS = true;

@@ -5,16 +5,29 @@
 		{{#paper-button action="deleteAccount"}}{{paper-icon icon="delete"}}{{/paper-button}}
 	</div>
 {{/paper-toolbar}}
-{{#paper-content class="primary-content"}}
-	<form {{action "addAccount" on="submit"}}>
-		<div class="form-content">
-			{{paper-text label="Jabber ID" type="email" value=id required=true disabled=true}}
-			<!-- TODO: Make password editable -->
-			{{paper-text label="Password" type="password" value=password required=true disabled=true}}
-			{{#paper-checkbox checked=showAdvanced}}Advanced settings{{/paper-checkbox}}
-			{{#if showAdvanced}}
-				{{paper-text label="BOSH server" type="url" value=boshURL required=true disabled=true}}
-			{{/if}}
-		</div>
+{{#paper-list class="settings-list"}}
+	{{#paper-item}}
+		{{#paper-tile-left}}
+			{{paper-switch checked=enabled}}
+		{{/paper-tile-left}}
+		{{#paper-tile-content}}
+			<h3>{{id}}</h3>
+			<p>{{status}}</p>
+		{{/paper-tile-content}}
+	{{/paper-item}}
+	{{paper-divider}}
+	<form {{action "editAccount" on="submit"}}>
+		{{#paper-item}}
+			{{#paper-tile-content}}
+				<h3>Jabber ID</h3>
+				<p>{{id}}</p>
+			{{/paper-tile-content}}
+		{{/paper-item}}
+		{{paper-divider}}
+		{{#paper-item}}
+			{{#paper-tile-content}}
+				{{paper-text label="Password" type="password" value=password}}
+			{{/paper-tile-content}}
+		{{/paper-item}}
 	</form>
-{{/paper-content}}
+{{/paper-list}}

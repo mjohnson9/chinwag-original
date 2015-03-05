@@ -9,7 +9,7 @@ $primary-color: map-get($primary-color-palette, "500");
 $primary-color-light: map-get($primary-color-palette, "100");
 $primary-color-dark: map-get($primary-color-palette, "700");
 
-$accent-color-palette: $color-orange;
+$accent-color-palette: $color-light-blue;
 $accent-color: map-get($accent-color-palette, "A200");
 $accent-color-light: map-get($accent-color-palette, "A100");
 $accent-color-dark: map-get($accent-color-palette, "A400");
