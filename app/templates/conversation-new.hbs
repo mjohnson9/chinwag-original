@@ -9,15 +9,15 @@
 		{{#paper-item classNames="conversation-item"}}
 			{{#paper-tile-left}}
 				{{#if avatar}}
-					<img {{bind-attr src=avatar alt=name title=name}} width="30" height="30" class="face">
+					<img {{bind-attr src=avatar alt=prettyName title=prettyName}} width="30" height="30" class="face">
 				{{else}}
-					{{avatar-tile name=account.id class="face"}}
+					{{avatar-tile name=prettyName class="face" alt=prettyName title=prettyName}}
 				{{/if}}
 			{{/paper-tile-left}}
 
 			{{#paper-tile-content}}
-				<h3>{{name}}</h3>
-				<h4>{{jid}}</h4>
+				<h3>{{prettyName}}</h3>
+				<p>{{jid}}</p>
 			{{/paper-tile-content}}
 		{{/paper-item}}
 		{{paper-divider inset=true}}

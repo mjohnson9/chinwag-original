@@ -2,7 +2,7 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
 	tagName: 'img',
-	attributeBindings: ['tileURL:src'],
+	attributeBindings: ['tileURL:src', 'title', 'alt'],
 
 	tileURL: function() {
 		var name = this.get('name');

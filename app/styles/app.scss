@@ -25,6 +25,16 @@
 	margin-right: auto;
 }
 
+.md-tile-content {
+	h3 {
+		@extend .text-primary;
+	}
+
+	p {
+		@extend .text-secondary;
+	}
+}
+
 @import "./modal.scss";
 @import "./form.scss";
 
