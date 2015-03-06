@@ -1,5 +1,4 @@
 import Ember from 'ember';
-import Connection from 'chinwag/utils/connection';
 
 export default Ember.ArrayController.extend({
 	notificationSound: null,
