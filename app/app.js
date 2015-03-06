@@ -27,7 +27,6 @@ Strophe.log = function(level, msg) {
 			break;
 		default:
 			throw 'unknown log level: '+level;
-			break;
 	}
 };
 
