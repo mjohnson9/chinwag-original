@@ -1,6 +1,11 @@
 import DS from 'ember-data';
 
-export default DS.Model.extend({
+var Contact = DS.Model.extend({
+	jid: function() {
+		var id = this.get('id');
+		return id.substr(id.indexOf(":")+1);
+	}.property('id'),
+
 	account: DS.belongsTo('account'),
 
 	name: DS.attr('string'), // Contact's display name
@@ -13,3 +18,9 @@ export default DS.Model.extend({
 
 	messages: DS.hasMany('message')
 });
+
+Contact.reopenClass({
+	FIXTURES: []
+});
+
+export default Contact;

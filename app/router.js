@@ -15,6 +15,7 @@ Router.map(function() {
 		this.route('updates');
 	});
 
+	this.route('conversation-new', {path: '/conversation/new'});
 	this.resource('conversation', {path: '/conversation/:contact_id'});
 });
 
