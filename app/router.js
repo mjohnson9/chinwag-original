@@ -16,7 +16,7 @@ Router.map(function() {
 	});
 
 	this.route('conversation-new', {path: '/conversation/new'});
-	this.resource('conversation', {path: '/conversation/:contact_id'});
+	this.resource('conversation', {path: '/conversation/:conversation_id'});
 });
 
 export default Router;

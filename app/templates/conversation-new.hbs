@@ -4,9 +4,9 @@
 		<span>Start conversation</span>
 	</div>
 {{/paper-toolbar}}
-{{#paper-list classNames="conversation-list"}}
+{{#paper-list classNames="conversation-new-list"}}
 	{{#each}}
-		{{#paper-item classNames="conversation-item"}}
+		{{#paper-item classNames="conversation-new-item" action="startConversation"}}
 			{{#paper-tile-left}}
 				{{#if avatar}}
 					<img {{bind-attr src=avatar alt=prettyName title=prettyName}} width="30" height="30" class="face">
