@@ -8,7 +8,6 @@ DEST_DIR=build
 ENTRYPOINTS=$(shell find src/scripts -maxdepth 1 -type f -iname '*.js' -or -iname '*.jsx')
 LIBS=$(shell find src/scripts/lib -type f -iname '*.js' -or -iname '*.jsx')
 
-
 .PHONY: all clean
 
 entrypoint_bundles_part1=$(ENTRYPOINTS:%.js=%.bundle.js)
