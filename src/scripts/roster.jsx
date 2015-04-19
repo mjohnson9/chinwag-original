@@ -1,4 +1,4 @@
-"use strict";
+var React = require('react/addons');
 
 var RosterItem = React.createClass({
 	render: function() {

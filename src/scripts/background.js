@@ -1,3 +1,7 @@
+var XMPP = require('stanza.io');
+
+var common = require('./common');
+
 var manifest = chrome.runtime.getManifest();
 
 // ===== BackgroundPage =====
@@ -17,7 +21,7 @@ function BackgroundPage() {
 
 BackgroundPage.prototype.getRoster = function() {
     if(this.client === undefined) {
-        return;
+        return null;
     }
 
     return this.client.roster;
@@ -25,7 +29,7 @@ BackgroundPage.prototype.getRoster = function() {
 
 BackgroundPage.prototype.getMessageHistory = function(jid) {
     if(this.client === undefined) {
-        return;
+        return null;
     }
 
     return this.client.messages[jid];
@@ -46,7 +50,7 @@ BackgroundPage.prototype.sendMessage = function(jid, message) {
 // Callbacks
 
 BackgroundPage.prototype.browserActionClicked = function() {
-    chinwag.common.windows.roster();
+    common.windows.roster();
 };
 
 BackgroundPage.prototype.rosterUpdated = function(roster) {
@@ -75,7 +79,7 @@ IPCHandler.prototype.broadcast = function(channel, method) {
         return;
     }
 
-    var args = sliceArguments(arguments, 2);
+    var args = common.sliceArguments(arguments, 2);
     args.unshift(method);
 
     for(var i = 0; i < subscriptions.length; i++) {
@@ -190,7 +194,7 @@ heir.inherit(IPCConnection, EventEmitter);
 IPCConnection.prototype.sendMessage = function(method) {
     this.port.postMessage({
         method: method,
-        args: sliceArguments(arguments, 1)
+        args: common.sliceArguments(arguments, 1)
     });
 };
 

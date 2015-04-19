@@ -6,7 +6,10 @@
   },
   "devDependencies": {
     "browserify": "^9.0.8",
+    "minifyify": "^6.4.0",
+    "moment": "^2.10.2",
+    "react": "^0.13.2",
     "reactify": "^1.1.0",
-    "uglifyjs": "^2.4.10"
+    "stanza.io": "^7.1.6"
   }
 }

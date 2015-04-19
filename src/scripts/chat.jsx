@@ -94,7 +94,7 @@ var Chat = React.createClass({
     },
 
     rosterUpdated: function(roster) {
-        if(roster == null) return;
+        if(!roster) return;
 
         var entry;
 
@@ -112,7 +112,7 @@ var Chat = React.createClass({
     },
 
     messagesUpdated: function(messageHistory) {
-        if(messageHistory == null) messageHistory = [];
+        if(!messageHistory) messageHistory = [];
 
         this.setState({messages: messageHistory});
     },

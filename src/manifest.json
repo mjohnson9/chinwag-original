@@ -9,7 +9,7 @@
 	"background": {
 		"persistent": true,
 
-		"scripts": ["scripts/vendors/heir.js", "scripts/vendors/EventEmitter.js", "scripts/vendors/stanza.io.js", "scripts/common.js", "scripts/background.js"]
+		"scripts": ["scripts/background.bundle.js"]
 	},
 
 	"browser_action": {

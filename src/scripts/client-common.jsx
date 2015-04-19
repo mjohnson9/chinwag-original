@@ -1,4 +1,4 @@
-"use strict";
+var moment = require('moment');
 
 console.debug("moment locale set to", moment.locale(chrome.i18n.getUILanguage()));
 
@@ -54,7 +54,7 @@ IPCConnection.prototype.call = function(cb, method) {
     console.debug('SEND', s);
 
     this.port.postMessage(s);
-}
+};
 
 // Callbacks
 
@@ -133,7 +133,7 @@ function formatAs(format, time, rawDiff, long) {
         formatName = 'shortFormat';
     }
 
-    if(format[simpleName] != null) {
+    if(format[simpleName]) {
         var num = moment.duration(diff)[format.unit]();
 
         if(format.unit === 'seconds' && num === 0) {
@@ -152,7 +152,7 @@ function formatAs(format, time, rawDiff, long) {
         return num+unitString;
     }
 
-    if(format[formatName] != null) {
+    if(format[formatName]) {
         return time.format(format[formatName]);
     }
 
@@ -166,7 +166,7 @@ function getFormatted(time, long) {
 
     for(var i = 0, j = formats.length; i < j; i++) {
         var format = formats[i];
-        if(format.until == null || diff < format.until) {
+        if(!format.until || diff < format.until) {
             var retData = {
                 text: formatAs(format, time, rawDiff, long)
             };
@@ -185,7 +185,7 @@ function getFormatted(time, long) {
                     retData.nextChange = Math.min(diff-nextFormat.until, diff % timeUnit);
                 }
             } else {
-                if(format.until != null) {
+                if(format.until) {
                     retData.nextChange = Math.min(format.until-diff, timeUnit - diff % timeUnit);
                 }
             }
@@ -231,7 +231,7 @@ var TimeAgo = React.createClass({
         this.clock();
     },
     cancelClock: function() {
-        if(this.timer == null) {
+        if(!this.timer) {
             return;
         }
 
@@ -251,7 +251,7 @@ var TimeAgo = React.createClass({
         var timeAgo = formatData.text;
         this.setState({timeAgo: timeAgo});
 
-        if(formatData.nextChange == null) {
+        if(!formatData.nextChange) {
             return;
         }
 
