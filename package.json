@@ -1,0 +1,12 @@
+{
+  "name": "chinwag",
+  "private": true,
+  "scripts": {
+    "build": "make"
+  },
+  "devDependencies": {
+    "browserify": "^9.0.8",
+    "reactify": "^1.1.0",
+    "uglifyjs": "^2.4.10"
+  }
+}
