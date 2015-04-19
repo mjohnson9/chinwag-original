@@ -78,5 +78,4 @@ $(DEST_DIR)/%.html: $(SRC_DIR)/%.html $(DEST_DIR)
 	cp $< $@
 
 $(ARCHIVE): all
-	cd $(DEST_DIR)
-	zip -r ../$(ARCHIVE) .
+	cd $(DEST_DIR) && zip -r ../$(ARCHIVE) .
