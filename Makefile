@@ -1,23 +1,24 @@
 NAME = chinwag
-MAINS = background.js roster.jsx chat.jsx
+ENTRYPOINTS = background.js roster.jsx chat.jsx
+
+DEST_DIR=build
 
 BROWSERIFY=./node_modules/.bin/browserify
 
+.PHONY: clean
 
-# -- Tasks ------------------------------------------------------------
+entrypoint_bundles=$(ENTRYPOINTS:%.js=%.bundle.js)
 
-%.js: %.jsx
+all: clean $(entrypoint_bundles)
 
+clean:
+	rm -rf $(DEST_DIR)
 
+$(DEST_DIR):
+	mkdir -p $@
 
-# -- Build artifacts --------------------------------------------------
+%.bundle.js: %.jsx
+	$(BROWSERIFY) -t [ reactify --extension jsx ] $? > $@
 
-build/$(NAME).zip: build/$(NAME).bundle.js build/$(NAME).bundle.min.js
-	zip -j $@ $^
-
-build/$(NAME).bundle.js: $(MAIN) $(LIB)
-	mkdir -p build
-	browserify --full-paths --standalone $(STANDALONE) $(MAIN) > $@
-
-build/$(NAME).bundle.min.js: build/$(NAME).bundle.js
-	uglifyjs --screw-ie8 build/$(NAME).bundle.js > $@
+%.bundle.js: %.js
+	$(BROWSERIFY) -t [ reactify --extension jsx ] $? > $@
