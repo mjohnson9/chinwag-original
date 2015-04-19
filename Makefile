@@ -10,6 +10,7 @@ LESSC_FLAGS=--clean-css="--s0 --compatibility='*'"
 
 SRC_DIR=src
 DEST_DIR=build
+BUILD_METADATA_DIR=build-data
 
 PAGES=$(shell find $(SRC_DIR) -maxdepth 1 -type f -iname '*.html')
 
@@ -36,10 +37,11 @@ all: $(DEST_DIR)/manifest.json $(DEST_DIR)/fonts $(DEST_DIR)/icons $(DEST_DIR)/_
 
 clean:
 	rm -rf $(DEST_DIR)
+	rm -rf $(BUILD_METADATA_DIR)
 	rm -f $(ARCHIVE)
 
 
-$(DEST_DIR):
+$(DEST_DIR) $(BUILD_METADATA_DIR):
 	mkdir -p $@
 	touch $@ # We have to touch folders so that Make doesn't keep trying to create them because of timestamp mismatches
 
@@ -67,15 +69,19 @@ $(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx $(LIBS) $(DEST_DIR)/sc
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
 
 
-$(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less $(STYLES_LIBS) $(DEST_DIR)/styles
+$(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less $(DEST_DIR)/styles $(BUILD_METADATA_DIR)
+	$(LESSC) -M $< $@ > $(BUILD_METADATA_DIR)/$*.less.makedeps
+    #sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.less.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.less.makedeps # Presently broken: make thinks it's a regular expression that can't be fulfilled
 	$(LESSC) $(LESSC_FLAGS) $< $@
+
+-include $(BUILD_METADATA_DIR)/$(styles_resolved:$(DEST_DIR)/styles/%.css=$(BUILD_METADATA_DIR)/%.less.makedeps)
 
 
 $(DEST_DIR)/manifest.json: $(SRC_DIR)/manifest.json $(DEST_DIR)
-	cp $< $@
+	cp -a $< $@
 
 $(DEST_DIR)/%.html: $(SRC_DIR)/%.html $(DEST_DIR)
-	cp $< $@
+	cp -a $< $@
 
 $(ARCHIVE): all
 	cd $(DEST_DIR) && zip -r ../$(ARCHIVE) .
