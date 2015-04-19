@@ -1,3 +1,9 @@
+var React = require('react/addons');
+
+var clientCommon = require('./lib/client/common');
+var IPCConnection = require('./lib/client/ipc');
+var TimeAgo = require('./lib/client/components/time-ago');
+
 var qs = (function(a) {
     if (a === "") return {};
     var b = {};
@@ -148,7 +154,7 @@ var Chat = React.createClass({
 
         return (
             <div className="chat">
-                <title>{displayName(this.state.rosterEntry)}</title>
+                <title>{clientCommon.displayName(this.state.rosterEntry)}</title>
                 <ul>{messages}</ul>
                 <SendBox onSendMessage={this.onSendMessage} />
             </div>

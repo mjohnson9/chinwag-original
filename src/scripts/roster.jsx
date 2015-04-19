@@ -1,9 +1,16 @@
 var React = require('react/addons');
 
+var clientCommon = require('./lib/client/common');
+var IPCConnection = require('./lib/client/ipc');
+var windows = require('./lib/windows');
+
 var RosterItem = React.createClass({
 	render: function() {
 		return (
-			<li title={this.props.entry.jid} onClick={this.entryClicked}><img src={this.props.entry.avatar} className="avatar" /><span className="name">{displayName(this.props.entry)}</span></li>
+			<li title={this.props.entry.jid} onClick={this.entryClicked}>
+				<img src={this.props.entry.avatar} className="avatar" />
+				<span className="name">{clientCommon.displayName(this.props.entry)}</span>
+			</li>
 		);
 	},
 
@@ -11,7 +18,7 @@ var RosterItem = React.createClass({
 		if(ev.button === 0) {
 			ev.preventDefault();
 
-			chinwag.common.windows.chat(this.props.entry.jid);
+			windows.chat(this.props.entry.jid);
 		}
 	}
 });

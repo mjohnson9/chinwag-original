@@ -1,6 +1,10 @@
+var EventEmitter = require('events').EventEmitter;
+
+var heir = require('heir');
 var XMPP = require('stanza.io');
 
-var common = require('./common');
+var common = require('./lib/common');
+var windows = require('./lib/windows');
 
 var manifest = chrome.runtime.getManifest();
 
@@ -50,7 +54,7 @@ BackgroundPage.prototype.sendMessage = function(jid, message) {
 // Callbacks
 
 BackgroundPage.prototype.browserActionClicked = function() {
-    common.windows.roster();
+    windows.roster();
 };
 
 BackgroundPage.prototype.rosterUpdated = function(roster) {
@@ -209,11 +213,11 @@ IPCConnection.prototype.sendResponse = function(id, response) {
 // Callbacks
 
 IPCConnection.prototype.onMessage = function(msg) {
-    this.trigger('message', [msg]);
+    this.emit('message', msg);
 };
 
 IPCConnection.prototype.onDisconnect = function() {
-    this.trigger('disconnect');
+    this.emit('disconnect');
 };
 
 // ==== Connection =====
@@ -350,12 +354,11 @@ Connection.prototype.rosterReceived = function(iq) {
     }
 
     console.info('Roster updated:', this.roster);
-    this.trigger('rosterUpdated', [this.roster]);
+    this.emit('rosterUpdated', this.roster);
 };
 
 function base64toBlob(base64Data, contentType) {
     contentType = contentType || '';
-    console.info('base64toBlob', contentType, base64Data);
     var sliceSize = 1024;
     var byteCharacters = atob(base64Data);
     var bytesLength = byteCharacters.length;
@@ -397,7 +400,7 @@ Connection.prototype.avatarReceived = function(_, stanza) {
         return;
     }
 
-    this.trigger('rosterUpdated', [this.roster]);
+    this.emit('rosterUpdated', this.roster);
 };
 
 function s4() {
@@ -466,7 +469,7 @@ Connection.prototype.handleMessage = function(incoming, stanza) {
         this.messages[conversation] = messageHistory;
     }
 
-    this.trigger('messagesUpdated', [conversation, messageHistory]);
+    this.emit('messagesUpdated', conversation, messageHistory);
 };
 
 var backgroundPage = new BackgroundPage();
