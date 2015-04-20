@@ -7,7 +7,7 @@ ENVIRONMENT=development
 BROWSERIFY=./node_modules/.bin/browserify
 
 git_sha=$(shell git rev-parse --verify HEAD)
-BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -g uglifyify -t [ envify --GIT_SHA $(git_sha) --ENVIRONMENT $(ENVIRONMENT) ]
+BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -g uglifyify -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
 
 LESSC=./node_modules/.bin/lessc
 LESSC_FLAGS=--clean-css="--s0 --compatibility='*'"

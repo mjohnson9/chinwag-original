@@ -4,7 +4,7 @@ var rollbarConfig = {
     accessToken: '11ad751054b74ad28937674220f82ce2',
     captureUncaught: true,
     payload: {
-        environment: process.env.ENVIRONMENT,
+        environment: process.env.NODE_ENV,
 
         client: {
         	javascript: {
