@@ -75,7 +75,7 @@ $(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx $(LIBS) | $(DEST_DIR)/
 
 $(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less | $(DEST_DIR)/styles $(BUILD_METADATA_DIR)
 	$(LESSC) -M $< $@ > $(BUILD_METADATA_DIR)/$*.less.makedeps
-    #sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.less.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.less.makedeps # Presently broken: make thinks it's a regular expression that can't be fulfilled
+	sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.less.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.less.makedeps
 	$(LESSC) $(LESSC_FLAGS) $< $@
 
 -include $(BUILD_METADATA_DIR)/$(styles_resolved:$(DEST_DIR)/styles/%.css=$(BUILD_METADATA_DIR)/%.less.makedeps)
