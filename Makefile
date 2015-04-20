@@ -8,6 +8,10 @@ BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -g ugl
 LESSC=./node_modules/.bin/lessc
 LESSC_FLAGS=--clean-css="--s0 --compatibility='*'"
 
+MINIMIZE=./node_modules/.bin/minimize
+MINIMIZE_FLAGS=
+
+
 SRC_DIR=src
 DEST_DIR=build
 BUILD_METADATA_DIR=build-data
@@ -43,33 +47,28 @@ clean:
 
 $(DEST_DIR) $(BUILD_METADATA_DIR):
 	mkdir -p $@
-	touch $@ # We have to touch folders so that Make doesn't keep trying to create them because of timestamp mismatches
 
-$(DEST_DIR)/scripts $(DEST_DIR)/styles: $(DEST_DIR)
+$(DEST_DIR)/scripts $(DEST_DIR)/styles: | $(DEST_DIR)
 	mkdir -p $@
-	touch $@ # We have to touch folders so that Make doesn't keep trying to create them because of timestamp mismatches
 
-$(DEST_DIR)/fonts: $(SRC_DIR)/fonts $(DEST_DIR)
+$(DEST_DIR)/fonts: $(SRC_DIR)/fonts | $(DEST_DIR)
 	cp -ra $</. $@
-	touch $@ # We have to touch folders so that Make doesn't keep trying to create them because of timestamp mismatches
 
-$(DEST_DIR)/icons: $(SRC_DIR)/icons $(DEST_DIR)
+$(DEST_DIR)/icons: $(SRC_DIR)/icons | $(DEST_DIR)
 	cp -ra $</. $@
-	touch $@ # We have to touch folders so that Make doesn't keep trying to create them because of timestamp mismatches
 
-$(DEST_DIR)/_locales: $(SRC_DIR)/_locales $(DEST_DIR)
+$(DEST_DIR)/_locales: $(SRC_DIR)/_locales | $(DEST_DIR)
 	cp -ra $</. $@
-	touch $@ # We have to touch folders so that Make doesn't keep trying to create them because of timestamp mismatches
 
 
-$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.js $(LIBS) $(DEST_DIR)/scripts
+$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.js $(LIBS) | $(DEST_DIR)/scripts
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
 
-$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx $(LIBS) $(DEST_DIR)/scripts
+$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx $(LIBS) | $(DEST_DIR)/scripts
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
 
 
-$(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less $(DEST_DIR)/styles $(BUILD_METADATA_DIR)
+$(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less | $(DEST_DIR)/styles $(BUILD_METADATA_DIR)
 	$(LESSC) -M $< $@ > $(BUILD_METADATA_DIR)/$*.less.makedeps
     #sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.less.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.less.makedeps # Presently broken: make thinks it's a regular expression that can't be fulfilled
 	$(LESSC) $(LESSC_FLAGS) $< $@
@@ -77,11 +76,11 @@ $(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less $(DEST_DIR)/styles $(BUILD_ME
 -include $(BUILD_METADATA_DIR)/$(styles_resolved:$(DEST_DIR)/styles/%.css=$(BUILD_METADATA_DIR)/%.less.makedeps)
 
 
-$(DEST_DIR)/manifest.json: $(SRC_DIR)/manifest.json $(DEST_DIR)
-	cp -a $< $@
+$(DEST_DIR)/manifest.json: $(SRC_DIR)/manifest.json | $(DEST_DIR)
+	cat $< > $@
 
-$(DEST_DIR)/%.html: $(SRC_DIR)/%.html $(DEST_DIR)
-	cp -a $< $@
+$(DEST_DIR)/%.html: $(SRC_DIR)/%.html | $(DEST_DIR)
+	$(MINIMIZE) $(MINIMIZE_FLAGS) --output $@ $<
 
 $(ARCHIVE): all
 	cd $(DEST_DIR) && zip -r ../$(ARCHIVE) .
