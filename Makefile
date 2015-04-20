@@ -2,8 +2,12 @@ NAME=chinwag
 
 ARCHIVE=$(NAME).zip
 
+ENVIRONMENT=development
+
 BROWSERIFY=./node_modules/.bin/browserify
-BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -g uglifyify
+
+git_sha=$(shell git rev-parse --verify HEAD)
+BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -g uglifyify -t [ envify --GIT_SHA $(git_sha) --ENVIRONMENT $(ENVIRONMENT) ]
 
 LESSC=./node_modules/.bin/lessc
 LESSC_FLAGS=--clean-css="--s0 --compatibility='*'"
@@ -59,6 +63,7 @@ $(DEST_DIR)/icons: $(SRC_DIR)/icons | $(DEST_DIR)
 
 $(DEST_DIR)/_locales: $(SRC_DIR)/_locales | $(DEST_DIR)
 	cp -ra $</. $@
+
 
 
 $(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.js $(LIBS) | $(DEST_DIR)/scripts

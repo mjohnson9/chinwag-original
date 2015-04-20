@@ -1,4 +1,6 @@
-var React = require('react/addons');
+require('./lib/error-reporting');
+
+var React = require('react');
 
 var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');

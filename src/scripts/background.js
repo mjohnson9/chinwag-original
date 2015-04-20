@@ -1,3 +1,5 @@
+require('./lib/error-reporting');
+
 var EventEmitter = require('events').EventEmitter;
 
 var heir = require('heir');
