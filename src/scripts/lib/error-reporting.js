@@ -1,4 +1,4 @@
-var rollbar = require('./vendor/rollbar.js');
+/*var rollbar = require('./vendor/rollbar.js');
 
 var rollbarConfig = {
     accessToken: '11ad751054b74ad28937674220f82ce2',
@@ -17,4 +17,4 @@ var rollbarConfig = {
 };
 
 var session = rollbar.init(rollbarConfig);
-window.rollbar = session;
+window.rollbar = session;*/

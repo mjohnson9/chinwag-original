@@ -10,6 +10,7 @@ function IPCConnection() {
     this.currentID = 1;
 
     this.port = chrome.runtime.connect();
+    console.debug('IPC: Connected');
 
     this.port.onMessage.addListener(this.onMessage.bind(this));
     this.port.onDisconnect.addListener(this.onDisconnect.bind(this));
@@ -74,6 +75,7 @@ IPCConnection.prototype.onMessage = function(msg) {
 IPCConnection.prototype.onDisconnect = function() {
     console.error('IPC: Got disconnected from background page');
     this.emit('disconnect');
+    window.location.reload();
 };
 
 module.exports = IPCConnection;

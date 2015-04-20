@@ -17,6 +17,7 @@
     "react": "^0.13.2",
     "reactify": "^1.1.0",
     "stanza.io": "^7.1.6",
-    "uglifyify": "^3.0.1"
+    "uglifyify": "^3.0.1",
+    "watchify": "^3.1.1"
   }
 }

@@ -7,7 +7,7 @@ ENVIRONMENT=development
 BROWSERIFY=./node_modules/.bin/browserify
 
 git_sha=$(shell git rev-parse --verify HEAD)
-BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -g uglifyify -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
+BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ] -g uglifyify
 
 LESSC=./node_modules/.bin/lessc
 LESSC_FLAGS=--clean-css="--s0 --compatibility='*'"
@@ -25,8 +25,7 @@ PAGES=$(shell find $(SRC_DIR) -maxdepth 1 -type f -iname '*.html')
 ENTRYPOINTS=$(shell find $(SRC_DIR)/scripts -maxdepth 1 -type f -iname '*.js' -or -iname '*.jsx')
 LIBS=$(shell find $(SRC_DIR)/scripts/lib -type f -iname '*.js' -or -iname '*.jsx')
 
-STYLES=$(SRC_DIR)/styles/chat.less $(SRC_DIR)/styles/roster.less
-STYLES_LIBS=$(SRC_DIR)/styles/common.less $(SRC_DIR)/styles/material-typography.less
+STYLES=$(SRC_DIR)/styles/chat.less $(SRC_DIR)/styles/roster.less $(SRC_DIR)/styles/signin.less
 
 
 .PHONY: all clean
@@ -66,16 +65,30 @@ $(DEST_DIR)/_locales: $(SRC_DIR)/_locales | $(DEST_DIR)
 
 
 
-$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.js $(LIBS) | $(DEST_DIR)/scripts
+$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.js | $(DEST_DIR)/scripts
+	@echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.js.makedeps
+	@$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
+	@echo >> $(BUILD_METADATA_DIR)/$*.js.makedeps
+	@sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.js.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
 
-$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx $(LIBS) | $(DEST_DIR)/scripts
+$(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx | $(DEST_DIR)/scripts
+	@echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	@$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	@echo >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	@sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.jsx.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
+
+entrypoint_includes_part1=$(ENTRYPOINTS:%.js=%.js.makedeps)
+entrypoint_includes_part2=$(entrypoint_includes_part1:%.jsx=%.jsx.makedeps)
+entrypoint_includes=$(subst $(SRC_DIR)/scripts,$(BUILD_METADATA_DIR),$(entrypoint_includes_part2))
+
+-include $(entrypoint_includes)
 
 
 $(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less | $(DEST_DIR)/styles $(BUILD_METADATA_DIR)
-	$(LESSC) -M $< $@ > $(BUILD_METADATA_DIR)/$*.less.makedeps
-	sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.less.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.less.makedeps
+	@$(LESSC) -M $< $@ > $(BUILD_METADATA_DIR)/$*.less.makedeps
+	@sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.less.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.less.makedeps
 	$(LESSC) $(LESSC_FLAGS) $< $@
 
 -include $(BUILD_METADATA_DIR)/$(styles_resolved:$(DEST_DIR)/styles/%.css=$(BUILD_METADATA_DIR)/%.less.makedeps)

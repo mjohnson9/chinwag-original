@@ -2,6 +2,7 @@ require('./lib/error-reporting');
 
 var React = require('react');
 
+var common = require('./lib/common');
 var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');
 var TimeAgo = require('./lib/client/components/time-ago');
@@ -84,6 +85,8 @@ var Chat = React.createClass({
         var oldMessages = this.state.messages.slice();
         this.state.messages.dirty = true;
         this.state.messages.push({
+            _internalID: common.uuid(),
+
             body: message,
             incoming: false,
             time: new Date().toISOString(),

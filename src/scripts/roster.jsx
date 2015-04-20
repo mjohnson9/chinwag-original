@@ -33,21 +33,47 @@ var Roster = React.createClass({
 
 		this.ipcConnection.sendMessage('subscribe', 'roster');
 		this.ipcConnection.call(this.rosterUpdated, 'getRoster');
+
+		this.ipcConnection.on('authUpdated', this.authResultReceived);
+
+		this.ipcConnection.sendMessage('subscribe', 'auth');
+		this.ipcConnection.call(this.authResultReceived, 'isAuthed');
 	},
 	componentWillUnmount: function() {
 		this.ipcConnection.disconnect();
 	},
 
+	authResultReceived: function(result) {
+		if(result === null) return;
+		this.setState({initialLoading: false, isAuthed: result});
+	},
+
 	rosterUpdated: function(roster) {
-		if(roster === 'not ready yet') return;
+		if(!roster) roster = [];
 
 		this.setState({roster: roster});
 	},
 
+	openSignIn: function() {
+		windows.signIn();
+	},
+
 	getInitialState: function() {
-		return {roster: []};
+		return {initialLoading: true, isAuthed: false, roster: []};
 	},
 	render: function() {
+		if(this.state.initialLoading) {
+			return <span/>;
+		}
+
+		if(!this.state.isAuthed) {
+			return (
+				<div className="sign-in-prompt">
+					<button onClick={this.openSignIn}>Sign in</button>
+				</div>
+			);
+		}
+
 		var rosterItems = this.state.roster.map(function(entry, index) {
 			return (
 				<RosterItem entry={entry} key={entry.jid} />

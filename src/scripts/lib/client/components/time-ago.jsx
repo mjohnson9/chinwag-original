@@ -11,12 +11,12 @@ var times = {
 };
 
 var formats = [
-    {
+    /*{
         unit: 'seconds',
         short: 's',
         long: ' second',
         until: times.minutes
-    },
+    },*/
     {
         unit: 'minutes',
         short: 'm',
@@ -55,8 +55,8 @@ function formatAs(format, time, rawDiff, long) {
     if(format[simpleName]) {
         var num = moment.duration(diff)[format.unit]();
 
-        if(format.unit === 'seconds' && num === 0) {
-            return 'now';
+        if(format.unit === 'minutes' && num === 0) {
+            return long ? 'just now' : 'now';
         }
 
         if(num < 1) {

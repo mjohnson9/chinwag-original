@@ -1,5 +1,6 @@
 require('./lib/error-reporting');
 
+var Buffer = require('buffer').Buffer;
 var EventEmitter = require('events').EventEmitter;
 
 var heir = require('heir');
@@ -13,17 +14,53 @@ var manifest = chrome.runtime.getManifest();
 // ===== BackgroundPage =====
 function BackgroundPage() {
     chrome.browserAction.onClicked.addListener(this.browserActionClicked.bind(this));
+    chrome.runtime.onInstalled.addListener(this.onInstalled.bind(this));
 
     this.ipcHandler = new IPCHandler(this);
 
-    this.client = new Connection('nightexcessive-test@jappix.com', 'asdf123');
-    this.client.start();
-
-    this.client.on('rosterUpdated', this.rosterUpdated.bind(this));
-    this.client.on('messagesUpdated', this.messagesUpdated.bind(this));
+    this.createClient();
 }
 
 // Methods
+
+BackgroundPage.prototype.createClient = function() {
+    chrome.storage.local.get(['credentials', 'roster'], this.initialStorageRetrieve.bind(this));
+};
+
+BackgroundPage.prototype.authenticate = function(jid, password) {
+    console.debug('Received authenticate request. Removing existing authentication data.');
+    if(this.client) {
+        console.debug('Stopping client...');
+        this.client.stop();
+        delete this.client;
+    }
+
+    chrome.storage.local.remove(['credentials', 'roster'], this.authenticate_.bind(this, jid, password));
+};
+
+BackgroundPage.prototype.authenticate_ = function(jid, password) {
+    console.debug('Starting new client...');
+    this.createClient_({
+        jid: jid,
+        password: password
+    });
+};
+
+BackgroundPage.prototype.createClient_ = function(credentials, roster) {
+    if(this.client) {
+        this.client.stop();
+        delete this.client;
+    }
+
+    this.client = new Connection(credentials, roster);
+
+    this.client.on('credentialsUpdated', this.credentialsUpdated.bind(this));
+    this.client.on('rosterUpdated', this.rosterUpdated.bind(this));
+    this.client.on('messagesUpdated', this.messagesUpdated.bind(this));
+    this.client.on('authResult', this.authResult.bind(this));
+
+    this.client.start();
+};
 
 BackgroundPage.prototype.getRoster = function() {
     if(this.client === undefined) {
@@ -46,10 +83,7 @@ BackgroundPage.prototype.sendMessage = function(jid, message) {
         return false;
     }
 
-    this.client.client.sendMessage({
-        to: jid,
-        body: message
-    });
+    this.client.sendMessage(jid, message);
     return true;
 };
 
@@ -59,12 +93,66 @@ BackgroundPage.prototype.browserActionClicked = function() {
     windows.roster();
 };
 
+BackgroundPage.prototype.credentialsUpdated = function(credentials) {
+    var stringified = JSON.stringify(credentials);
+    chrome.storage.local.set({credentials: stringified});
+};
+
 BackgroundPage.prototype.rosterUpdated = function(roster) {
-    this.ipcHandler.broadcast('roster', 'rosterUpdated', roster);
+    this.ipcHandler.broadcast('roster', 'rosterUpdated', this.getRoster());
+
+    chrome.storage.local.set({roster: JSON.stringify(roster)});
 };
 
 BackgroundPage.prototype.messagesUpdated = function(jid, messageHistory) {
     this.ipcHandler.broadcast('messages:'+jid, 'messagesUpdated', messageHistory);
+};
+
+BackgroundPage.prototype.authResult = function(success) {
+    this.requiresAuth = !success;
+    this.ipcHandler.broadcast('auth', 'authUpdated', success);
+};
+
+BackgroundPage.prototype.onInstalled = function(reason) {
+    if(reason === 'install') {
+        windows.roster();
+    }
+};
+
+BackgroundPage.prototype.initialStorageRetrieve = function(objects) {
+    var credentials;
+    if(objects.credentials) {
+        credentials = JSON.parse(objects.credentials);
+        for(var propertyName in credentials) {
+            if(!credentials.hasOwnProperty(propertyName)) {
+                continue;
+            }
+
+            var property = credentials[propertyName];
+            if(!(property instanceof Object)) {
+                continue;
+            }
+            if(property.type !== "Buffer") {
+                continue;
+            }
+
+            var arr = new Buffer(property.data);
+            credentials[propertyName] = arr;
+        }
+    }
+
+    if(!credentials) {
+        this.requiresAuth = true;
+        this.ipcHandler.broadcast('auth', 'authUpdated', !this.requiresAuth);
+        return;
+    }
+
+    var savedRoster;
+    if(objects.roster) {
+        savedRoster = JSON.parse(objects.roster);
+    }
+
+    this.createClient_(credentials, savedRoster);
 };
 
 // ==== IPCHandler =====
@@ -80,6 +168,10 @@ function IPCHandler(bp) {
 // Methods
 
 IPCHandler.prototype.broadcast = function(channel, method) {
+    var args = common.sliceArguments(arguments, 2);
+
+    console.trace('[BROADCAST]', channel+':'+method, args);
+
     var subscriptions = this.subscriptions[channel];
     if(!subscriptions) {
         return;
@@ -111,6 +203,17 @@ IPCHandler.prototype.methods.subscribe = function(connection, channel) {
 
 IPCHandler.prototype.methods.getRoster = function() {
     return this.page.getRoster();
+};
+
+IPCHandler.prototype.methods.isAuthed = function() {
+    if(this.page.requiresAuth === undefined) {
+        return null;
+    }
+    return !this.page.requiresAuth;
+};
+
+IPCHandler.prototype.methods.authenticate = function(connection, jid, password) {
+    this.page.authenticate(jid, password);
 };
 
 IPCHandler.prototype.methods.getMessageHistory = function(connection, jid) {
@@ -223,30 +326,49 @@ IPCConnection.prototype.onDisconnect = function() {
 };
 
 // ==== Connection =====
-function Connection(jid, password) {
+function Connection(credentials, savedRoster) {
     this.ready = false;
-    this.roster = [];
+    if(savedRoster) {
+        this.roster = this.decodeStoredRoster(savedRoster);
+        this.roster.avatarsDirty = true;
+    } else {
+        this.roster = [];
+    }
 
     this.messages = {};
 
-    this.client = XMPP.createClient({
+    this.loginJID_ = credentials.jid;
+    this.client = new XMPP.Client({
         softwareVersion: {
             name: 'Chinwag',
             version: manifest.version
         },
+        capsNode: 'https://chrome.google.com/webstore/detail/chinwag/redacted', // TODO: Replace with actual URL
 
         useStreamManagement: false, // TODO: Remove for production
 
-        jid: jid,
-        password: password,
+        jid: credentials.jid,
+        credentials: {
+            password: credentials.password,
 
+            serverKey: credentials.serverKey,
+            clientKey: credentials.clientKey,
+            saltedPassword: credentials.saltedPassword
+        },
+
+        rosterVer: this.roster.version,
 
         transport: 'old-websocket',
         wsURL: 'wss://websocket.jappix.com:443/'
     });
 
+    this.loadPlugins_();
+
     // Bind events
     this.client.on('*', this.debugLogging.bind(this));
+
+    this.client.on('auth:success', this.authResult.bind(this, true));
+    this.client.on('auth:failed', this.authResult.bind(this, false));
 
     this.client.on('session:started', this.sessionStarted.bind(this));
 
@@ -258,6 +380,19 @@ function Connection(jid, password) {
 heir.inherit(Connection, EventEmitter);
 
 // Methods
+
+Connection.prototype.loadPlugins_ = function() {
+    this.client.use(require('stanza.io/lib/plugins/disco'));
+
+    this.client.use(require('stanza.io/lib/plugins/roster'));
+
+    this.client.use(require('stanza.io/lib/plugins/version'));
+
+    this.client.use(require('stanza.io/lib/plugins/time'));
+
+    this.client.use(require('stanza.io/lib/plugins/pubsub'));
+    this.client.use(require('stanza.io/lib/plugins/avatar'));
+};
 
 Connection.prototype.start = function() {
     this.client.connect();
@@ -271,35 +406,92 @@ Connection.prototype.fetchAvatar = function(jid) {
     this.client.getAvatar(jid, "", this.avatarReceived.bind(this));
 };
 
+Connection.prototype.getStorableRoster = function() {
+    var storable = new Array(this.roster.length);
+
+    for(var i = 0, len = this.roster.length; i < len; i++) {
+        storable[i] = this.standardizeRosterEntry_(this.roster[i]);
+    }
+
+    return {
+        version: this.roster.version,
+        data: storable
+    };
+};
+
+Connection.prototype.decodeStoredRoster = function(stored) {
+    var roster = new Array(stored.data.length);
+    roster.version = stored.version;
+
+    for(var i = 0, len = stored.data.length; i < len; i++) {
+        roster[i] = this.unstandardizeRosterEntry_(stored.data[i]);
+    }
+
+    return roster;
+};
+
+// Prepares a roster entry for JSON stringifying for storage.
+Connection.prototype.standardizeRosterEntry_ = function(entry) {
+    return {
+        jid: entry.jid.bare || entry.jid,
+        name: entry.name,
+        subscription: entry.subscription
+    };
+};
+
+// Turns a standardized roster entry back into a normal roster entry
+Connection.prototype.unstandardizeRosterEntry_ = function(entry) {
+    return {
+        jid: new XMPP.JID(entry.jid),
+        name: entry.name,
+        subscription: entry.subscription
+    };
+};
+
+Connection.prototype.updateCredentials_ = function(newCredentials) {
+    var credentials = {
+        jid: this.loginJID_
+    };
+
+    if(this.loginJID) {
+        delete this.loginJID_;
+    }
+
+    if(newCredentials.serverKey && newCredentials.clientKey && newCredentials.saltedPassword) {
+        credentials.serverKey = newCredentials.serverKey;
+        credentials.clientKey = newCredentials.clientKey;
+        credentials.saltedPassword = newCredentials.saltedPassword;
+    } else {
+        credentials.password = newCredentials.password;
+    }
+
+    this.emit('credentialsUpdated', credentials);
+};
+
+Connection.prototype.sendMessage = function(to, body) {
+    this.client.sendMessage({
+        to: to,
+        body: body
+    });
+};
+
 // Callbacks
 
 var domParser = new DOMParser();
 
-Connection.prototype.debugLogging = console.debug.bind(console, '[XMPP]');/*function(name, ev) {
-    switch(name) {
-    case 'raw:incoming':
-        console.debug('[XMPP]', '[RECV]', domParser.parseFromString(ev, "text/xml").documentElement);
-        break;
-    case 'raw:outgoing':
-        console.debug('[XMPP]', '[SEND]', domParser.parseFromString(ev, "text/xml").documentElement);
-        break;
-    case 'stream:data':
-    case 'stanza':
-        // ignore these two: they're too common
-        break;
-    case 'avatar':
-        console.warn.bind(console, '[XMPP]');
-        break;
-    default:
-        .apply();
-        break;
-    }
-};*/
+Connection.prototype.debugLogging = console.debug.bind(console, '[XMPP]');
 
 Connection.prototype.sessionStarted = function() {
-    console.debug('Session started');
     //this.client.enableCarbons();
     this.client.getRoster(this.initialRosterReceived.bind(this));
+};
+
+Connection.prototype.authResult = function(success, credentials) {
+    if(success) {
+        this.updateCredentials_(credentials);
+    }
+
+    this.emit('authResult', success);
 };
 
 Connection.prototype.initialRosterReceived = function(_, response) {
@@ -311,6 +503,18 @@ Connection.prototype.initialRosterReceived = function(_, response) {
 
 Connection.prototype.rosterReceived = function(iq) {
     var roster = iq.roster;
+    if(!roster) {
+        // This is just an ack that our version is up-to-date.
+        if(this.roster.avatarsDirty) {
+            for(var i = 0, len = this.roster.length; i < len; i++) {
+                var item = this.roster[i];
+                this.fetchAvatar(item.jid);
+            }
+
+            delete this.roster.avatarsDirty;
+        }
+        return;
+    }
 
     for(var i = 0; i < roster.items.length; i++) {
         var item = roster.items[i];
@@ -342,8 +546,8 @@ Connection.prototype.rosterReceived = function(iq) {
             }
 
             item.avatar = updateItem.avatar;
-
             this.roster[k] = item;
+
             found = true;
             break;
         }
@@ -351,11 +555,23 @@ Connection.prototype.rosterReceived = function(iq) {
         if(!found) {
             this.roster.push(item);
 
-            this.fetchAvatar(item.jid);
+            if(!this.roster.avatarsDirty) {
+                this.fetchAvatar(item.jid);
+            }
         }
     }
 
-    console.info('Roster updated:', this.roster);
+    this.roster.version = iq.roster.ver;
+
+    if(this.roster.avatarsDirty) {
+        for(var l = 0, lLen = this.roster.length; l < lLen; i++) {
+            var rosterItem = this.roster[l];
+            this.fetchAvatar(rosterItem.jid);
+        }
+
+        delete this.roster.avatarsDirty;
+    }
+
     this.emit('rosterUpdated', this.roster);
 };
 
@@ -392,6 +608,10 @@ Connection.prototype.avatarReceived = function(_, stanza) {
             continue;
         }
 
+        if(rosterItem.avatar) {
+            window.URL.revokeObjectURL(rosterItem.avatar);
+        }
+
         rosterItem.avatar = avatarUrl;
         found = true;
         break;
@@ -402,16 +622,8 @@ Connection.prototype.avatarReceived = function(_, stanza) {
         return;
     }
 
-    this.emit('rosterUpdated', this.roster);
+    this.emit('rosterUpdated', this.getStorableRoster(this.roster));
 };
-
-function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-}
-
-function guid() {
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-}
 
 Connection.prototype.handleMessage = function(incoming, stanza) {
     if(!stanza.body) {
@@ -420,10 +632,8 @@ Connection.prototype.handleMessage = function(incoming, stanza) {
         return;
     }
 
-    console.log('message handled:', incoming, stanza);
-
     var msg = {
-        _internalID: guid(),
+        _internalID: common.uuid(),
 
         from: stanza.from.bare,
         to: stanza.to.bare,
@@ -474,4 +684,4 @@ Connection.prototype.handleMessage = function(incoming, stanza) {
     this.emit('messagesUpdated', conversation, messageHistory);
 };
 
-var backgroundPage = new BackgroundPage();
+window.backgroundPage = new BackgroundPage();
