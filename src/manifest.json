@@ -4,7 +4,7 @@
 
 	"name": "Chinwag",
 	"description": "Chinwag is a modern Jabber client built for Chrome",
-	"version": "0.1.6",
+	"version": "0.1.7",
 
 	"background": {
 		"persistent": true,
