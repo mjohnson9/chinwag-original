@@ -90,6 +90,10 @@ BackgroundPage.prototype.sendMessage = function(jid, message) {
 // Callbacks
 
 BackgroundPage.prototype.browserActionClicked = function() {
+    if(this.requiresAuth === true) {
+        windows.signIn();
+        return;
+    }
     windows.roster();
 };
 

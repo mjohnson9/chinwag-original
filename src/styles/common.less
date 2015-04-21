@@ -1,5 +1,8 @@
 @import url(../fonts/fonts.css);
-@import "material-typography.less";
+
+@import "node_modules/material-ui/src/less/scaffolding.less";
+@import "variable-overrides.less";
+@import "node_modules/material-ui/src/less/components.less";
 
 /*************************************************************************
  *
@@ -18,31 +21,13 @@
  * Johnson.
  */
 
-@dark-text: #000000;
-@dark-text-primary: fade(@dark-text, 87%);
-@dark-text-secondary: fade(@dark-text, 54%);
-@dark-text-hints: fade(@dark-text, 26%);
+ body, html {
+ 	width: initial;
+ 	height: initial;
+ }
 
-@light-text: #FFFFFF;
-@light-text-primary: fade(@light-text, 100%);
-@light-text-secondary: fade(@light-text, 70%);
-@light-text-hints: fade(@light-text, 30%);
-
-@primary: #3F51B5;
-@primary-light: #C5CAE9;
-@primary-dark: #303F9F;
-
-@accent: #FF4081;
-@accent-light: #FF80AB;
-@accent-dark: #F50057;
-
-body {
-	-webkit-user-select: none;
-
-	max-width: 100%;
-
-	cursor: default;
-
-	margin: 0;
-	padding: 0;
+.vertical-center {
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
 }

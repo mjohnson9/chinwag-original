@@ -66,17 +66,17 @@ $(DEST_DIR)/_locales: $(SRC_DIR)/_locales | $(DEST_DIR)
 
 
 $(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.js | $(DEST_DIR)/scripts
-	@echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.js.makedeps
-	@$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
-	@echo >> $(BUILD_METADATA_DIR)/$*.js.makedeps
-	@sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.js.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
+	echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.js.makedeps
+	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
+	echo >> $(BUILD_METADATA_DIR)/$*.js.makedeps
+	sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.js.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
 
 $(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx | $(DEST_DIR)/scripts
-	@echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.jsx.makedeps
-	@$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
-	@echo >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
-	@sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.jsx.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	echo >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.jsx.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
 
 entrypoint_includes_part1=$(ENTRYPOINTS:%.js=%.js.makedeps)
@@ -91,7 +91,7 @@ $(DEST_DIR)/styles/%.css: $(SRC_DIR)/styles/%.less | $(DEST_DIR)/styles $(BUILD_
 	@sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.less.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.less.makedeps
 	$(LESSC) $(LESSC_FLAGS) $< $@
 
--include $(BUILD_METADATA_DIR)/$(styles_resolved:$(DEST_DIR)/styles/%.css=$(BUILD_METADATA_DIR)/%.less.makedeps)
+-include $(styles_resolved:$(DEST_DIR)/styles/%.css=$(BUILD_METADATA_DIR)/%.less.makedeps)
 
 
 $(DEST_DIR)/manifest.json: $(SRC_DIR)/manifest.json | $(DEST_DIR)

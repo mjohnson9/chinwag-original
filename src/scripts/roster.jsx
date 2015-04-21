@@ -6,12 +6,22 @@ var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');
 var windows = require('./lib/windows');
 
+var mui = require('material-ui'),
+    RaisedButton = mui.RaisedButton;
+
 var RosterItem = React.createClass({
 	render: function() {
 		return (
 			<li title={this.props.entry.jid} onClick={this.entryClicked}>
-				<img src={this.props.entry.avatar} className="avatar" />
-				<span className="name">{clientCommon.displayName(this.props.entry)}</span>
+				<div className="body">
+					<div className="avatar-container">
+						<img src={this.props.entry.avatar} className="avatar" />
+					</div>
+					<div className="content">
+						<div className="name">{clientCommon.displayName(this.props.entry)}</div>
+					</div>
+				</div>
+				<div className="divider" />
 			</li>
 		);
 	},
@@ -56,6 +66,7 @@ var Roster = React.createClass({
 
 	openSignIn: function() {
 		windows.signIn();
+		window.close();
 	},
 
 	getInitialState: function() {
@@ -69,7 +80,7 @@ var Roster = React.createClass({
 		if(!this.state.isAuthed) {
 			return (
 				<div className="sign-in-prompt">
-					<button onClick={this.openSignIn}>Sign in</button>
+					<RaisedButton label="Sign in" primary={true} onClick={this.openSignIn} />
 				</div>
 			);
 		}

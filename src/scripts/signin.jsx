@@ -6,6 +6,10 @@ var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');
 var windows = require('./lib/windows');
 
+var mui = require('material-ui'),
+    RaisedButton = mui.RaisedButton,
+    TextField = mui.TextField;
+
 var SignIn = React.createClass({
 	componentDidMount: function() {
 		this.ipcConnection = new IPCConnection();
@@ -34,7 +38,8 @@ var SignIn = React.createClass({
 		if(!result) {
 			this.setState({
 				loading: false,
-				failed: true
+				jidError: "Username or password is incorrect.",
+				passwordError: "Username or password is incorrect."
 			});
 			return;
 		}
@@ -50,20 +55,32 @@ var SignIn = React.createClass({
 	formSubmitted: function(ev) {
 		ev.preventDefault();
 
-		this.setState({loading: true, failed: false});
+		var username = this.refs.jid.getValue().trim();
+		var password = this.refs.password.getValue().trim();
 
-		var username = React.findDOMNode(this.refs.jid).value.trim();
-		var password = React.findDOMNode(this.refs.password).value.trim();
+		if(!username) {
+			this.setState({jidError: "This field is required."});
+		} else {
+			this.setState({jidError: ""});
+		}
+
+		if(!password) {
+			this.setState({passwordError: "This field is required."});
+		} else {
+			this.setState({passwordError: ""});
+		}
 
 		if(!username || !password) {
 			return;
 		}
 
+		this.setState({loading: true});
+
 		this.ipcConnection.sendMessage('authenticate', username, password);
 	},
 
 	getInitialState: function() {
-		return {initialLoading: true, isAuthed: false, loading: false, failed: false};
+		return {initialLoading: true, isAuthed: false, loading: false, jidError: "", passwordError: ""};
 	},
 
 	render: function() {
@@ -74,8 +91,9 @@ var SignIn = React.createClass({
 		if(this.state.isAuthed) {
 			return (
 				<div>
-					<p>You are already logged in.</p>
-					<button>Log out</button>
+					<p>You are already signed in.</p>
+					<RaisedButton type="submit" primary={true} label="Sign out" />
+					TODO: Implement
 				</div>
 			);
 		}
@@ -83,20 +101,15 @@ var SignIn = React.createClass({
 		var loadingBanner;
 		if(this.state.loading) {
 			loadingBanner = <div>Logging in...</div>;
-		}
-
-		var errorMessage;
-		if(this.state.failed) {
-			errorMessage = <div>Invalid username or password.</div>;
+			// TODO: Make a better loading indicator
 		}
 
 		return (
 			<form onSubmit={this.formSubmitted}>
-				{loadingBanner}
-				{errorMessage}
-				<input type="email" ref="jid" placeholder="username@domain" required disabled={this.state.loading} />
-				<input type="password" ref="password" placeholder="Password" required disabled={this.state.loading} />
-				<button type="submit" disabled={this.state.loading}>Login</button>
+				{loadingBanner}<br/>
+				<TextField type="email" ref="jid" hintText="username@domain.com" autofocus disabled={this.state.loading} errorText={this.state.jidError} /><br/>
+				<TextField type="password" ref="password" hintText="Password" disabled={this.state.loading} errorText={this.state.passwordError} /><br/>
+				<RaisedButton type="submit" disabled={this.state.loading} primary={true} label="Sign in" />
 			</form>
 		);
 	}

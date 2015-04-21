@@ -1,32 +1,69 @@
 @import "common.less";
 
-.roster {
-	ul {
-		list-style: none;
-		padding-left: 0;
+.sign-in-prompt {
+	width: 100%;
+	height: 100%;
 
-		li {
-			padding: 0 8px;
-			margin: 3px 0;
+	text-align: center;
 
-			cursor: pointer;
-
-			border-bottom: 1px solid #000000;
-
-			vertical-align: middle;
-
-			.avatar {
-				width: 32px;
-				height: 32px;
-
-				vertical-align: middle;
-			}
-
-			.name {
-				.text-subhead();
-
-				vertical-align: middle;
-			}
-		}
+	div {
+		.vertical-center;
 	}
+}
+
+ul {
+	margin-top: 16px;
+
+	list-style: none;
+	padding-left: 0;
+}
+
+li {
+	list-style: none;
+	cursor: pointer;
+
+
+}
+
+.body {
+	display: flex;
+	align-items: center;
+	flex-direction: row;
+	box-sizing: border-box;
+	position: relative;
+	padding: 0;
+}
+
+.divider {
+	display: block;
+
+	margin: 0;
+	margin-left: 80px;
+
+	border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.avatar-container {
+	min-width: 56px;
+	margin-right: -16px;
+}
+
+.avatar {
+	width: 48px;
+	height: 48px;
+	border-radius: 30px;
+
+	border: 1px solid rgba(0, 0, 0, 0.12);
+
+	margin: 16px;
+}
+
+.content {
+	flex: 1;
+	padding: 16px;
+	text-overflow: ellipsis;
+}
+
+.name {
+	.mui-font-style-subhead-1;
 }

@@ -6,6 +6,10 @@ var common = require('./lib/common');
 var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');
 var TimeAgo = require('./lib/client/components/time-ago');
+var PersonIcon = require('./lib/client/components/person-icon');
+
+var mui = require('material-ui'),
+    TextField = mui.TextField;
 
 var qs = (function(a) {
     if (a === "") return {};
@@ -25,14 +29,14 @@ var SendBox = React.createClass({
     submit: function(ev) {
         ev.preventDefault();
 
-        var inputBox = React.findDOMNode(this.refs.chatBox);
+        var inputBox = this.refs.chatBox;
 
-        var message = inputBox.value.trim();
+        var message = inputBox.getValue().trim();
         if(!message) {
             return;
         }
 
-        inputBox.value = "";
+        inputBox.setValue("");
 
         this.props.onSendMessage(message);
     },
@@ -40,7 +44,7 @@ var SendBox = React.createClass({
         return (
             <div className="sendBox">
                 <form onSubmit={this.submit}>
-                    <input type="text" ref="chatBox" placeholder="Send a message..."/>
+                    <TextField type="text" ref="chatBox" hintText="Send a message..."/>
                 </form>
             </div>
         );
@@ -49,8 +53,18 @@ var SendBox = React.createClass({
 
 var Message = React.createClass({
     render: function() {
+        var avatar;
+        if(this.props.message.incoming) {
+            if(this.props.rosterEntry.avatar) {
+                avatar = <img className="avatar" src={this.props.rosterEntry.avatar} />
+            } else {
+                avatar = <PersonIcon className="avatar" />
+            }
+        }
+
         return (
             <li className={"message"+(!this.props.message.incoming ? " sent" : "")}>
+                {avatar}
                 <span>
                     <p>{this.props.message.body}</p>
                     <div className="info">

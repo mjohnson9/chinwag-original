@@ -11,9 +11,9 @@ html, body {
 	background-color: rgba(0, 0, 0, 12%);
 
 	.chat-header {
-		.text-title();
+		.mui-font-style-title();
 
-		position: fixed;
+		/*position: fixed;
 		left: 0;
 		top: 0;
 
@@ -23,7 +23,7 @@ html, body {
 		color: @light-text-primary;
 		background: @primary;
 
-		padding-left: 8px;
+		padding-left: 8px;*/
 	}
 
 	ul {
@@ -49,37 +49,46 @@ html, body {
 				flex-direction: row-reverse;
 			}
 
+			.avatar {
+				vertical-align: middle;
+
+				width: 40px;
+				height: 40px;
+				border-radius: 40px;
+
+				border: 1px solid rgba(0, 0, 0, 0.12);
+			}
+
 			& > span {
 				-webkit-user-select: text;
 
-				color: @dark-text-primary;
+				//color: @dark-text-primary;
 				background-color: #FFFFFF;
 				border-radius: 2px;
+
+				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
 
 				padding: 3px 6px;
 
 				font-size: 16px;
 
-				margin: 3px 8px;
+				margin: 3px 6px;
 
 				p {
-					.text-body();
 					line-height: normal;
 
 					word-wrap: break-word;
 
-					color: @dark-text-primary;
-
+					padding: 0;
 					margin: 0;
+					//margin-top: 3px;
 				}
 
 				.info {
-					font-size: 10px;
-					text-align: right;
+					.mui-font-style-caption();
 
-					.text-caption();
-
-					color: @dark-text-hints;
+					padding-top: 0;
+					margin-bottom: 0;
 				}
 			}
 		}
@@ -88,7 +97,7 @@ html, body {
 	.sendBox {
 		position: fixed;
 
-		bottom: 0;
+		bottom: 12px;
 		left: 0;
 		width: 100%;
 
@@ -98,13 +107,9 @@ html, body {
 			height: 100%;
 			width: 100%;
 
-			input {
-				height: 100%;
+			> div {
 				width: 100%;
-
-				border-left: 0;
-				border-right: 0;
-				border-bottom: 0;
+				background-color: #FFFFFF;
 			}
 		}
 	}
