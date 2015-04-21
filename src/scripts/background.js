@@ -170,8 +170,6 @@ function IPCHandler(bp) {
 IPCHandler.prototype.broadcast = function(channel, method) {
     var args = common.sliceArguments(arguments, 2);
 
-    console.trace('[BROADCAST]', channel+':'+method, args);
-
     var subscriptions = this.subscriptions[channel];
     if(!subscriptions) {
         return;
