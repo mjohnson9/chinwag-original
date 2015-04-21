@@ -27,25 +27,26 @@ var qs = (function(a) {
 
 var SendBox = React.createClass({
     submit: function(ev) {
+        if(ev.key !== "Enter" || ev.ctrlKey || ev.shiftKey) return;
+
         ev.preventDefault();
 
-        var inputBox = this.refs.chatBox;
+        var inputBox = React.findDOMNode(this.refs.inputBox);
 
-        var message = inputBox.getValue().trim();
-        if(!message) {
+        var messagePlaintext = inputBox.innerText.trim();
+        var messageHTML = inputBox.innerHTML.trim();
+        if(!messagePlaintext || !messageHTML) {
             return;
         }
 
-        inputBox.setValue("");
+        inputBox.innerHTML = "";
 
-        this.props.onSendMessage(message);
+        this.props.onSendMessage(messagePlaintext, messageHTML);
     },
     render: function() {
         return (
             <div className="sendBox">
-                <form onSubmit={this.submit}>
-                    <TextField type="text" ref="chatBox" hintText="Send a message..."/>
-                </form>
+                <span ref="inputBox" onKeyPress={this.submit} contentEditable={true}/>
             </div>
         );
     }
@@ -56,9 +57,9 @@ var Message = React.createClass({
         var avatar;
         if(this.props.message.incoming) {
             if(this.props.rosterEntry.avatar) {
-                avatar = <img className="avatar" src={this.props.rosterEntry.avatar} />
+                avatar = <img className="avatar" src={this.props.rosterEntry.avatar} />;
             } else {
-                avatar = <PersonIcon className="avatar" />
+                avatar = <PersonIcon className="avatar" />;
             }
         }
 
@@ -95,13 +96,13 @@ var Chat = React.createClass({
         this.ipcConnection.disconnect();
     },
 
-    onSendMessage: function(message) {
+    onSendMessage: function(messagePlaintext, messageHTML) {
         var oldMessages = this.state.messages.slice();
         this.state.messages.dirty = true;
         this.state.messages.push({
             _internalID: common.uuid(),
 
-            body: message,
+            body: messagePlaintext,
             incoming: false,
             time: new Date().toISOString(),
             to: this.jid
@@ -113,7 +114,7 @@ var Chat = React.createClass({
                 }
                 return;
             }
-        }.bind(this), 'sendMessage', this.jid, message);
+        }.bind(this), 'sendMessage', this.jid, messagePlaintext, messageHTML);
 
         this.setState({messages: this.state.messages});
     },

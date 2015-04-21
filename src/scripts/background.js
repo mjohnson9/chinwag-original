@@ -327,6 +327,10 @@ IPCConnection.prototype.onDisconnect = function() {
     this.emit('disconnect');
 };
 
+function getXMPPLang() {
+    return chrome.i18n.getUILanguage().split("-")[0];
+}
+
 // ==== Connection =====
 function Connection(credentials, savedRoster) {
     this.ready = false;
@@ -346,6 +350,8 @@ function Connection(credentials, savedRoster) {
             version: manifest.version
         },
         capsNode: 'https://chrome.google.com/webstore/detail/chinwag/redacted', // TODO: Replace with actual URL
+
+        lang: getXMPPLang(),
 
         useStreamManagement: false, // TODO: Remove for production
 

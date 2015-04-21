@@ -97,20 +97,25 @@ html, body {
 	.sendBox {
 		position: fixed;
 
-		bottom: 12px;
+		bottom: 0;
 		left: 0;
+
 		width: 100%;
+		min-height: 2em;
 
-		height: 2em;
+		background-color: #FFFFFF;
 
-		form {
-			height: 100%;
+		border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+		span {
 			width: 100%;
+			min-height: 100%;
 
-			> div {
-				width: 100%;
-				background-color: #FFFFFF;
-			}
+			outline: none;
+
+			padding: 0 8px;
+
+			border: 0;
 		}
 	}
 }

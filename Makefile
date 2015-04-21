@@ -7,7 +7,7 @@ ENVIRONMENT=development
 BROWSERIFY=./node_modules/.bin/browserify
 
 git_sha=$(shell git rev-parse --verify HEAD)
-BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ] -g uglifyify
+BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
 
 LESSC=./node_modules/.bin/lessc
 LESSC_FLAGS=--clean-css="--s0 --compatibility='*'"
@@ -67,14 +67,14 @@ $(DEST_DIR)/_locales: $(SRC_DIR)/_locales | $(DEST_DIR)
 
 $(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.js | $(DEST_DIR)/scripts $(BUILD_METADATA_DIR)
 	echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.js.makedeps
-	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | grep -Fv '$@' | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
+	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | grep -Fv '$<' | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
 	echo >> $(BUILD_METADATA_DIR)/$*.js.makedeps
 	sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.js.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.js.makedeps
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
 
 $(DEST_DIR)/scripts/%.bundle.js: $(SRC_DIR)/scripts/%.jsx | $(DEST_DIR)/scripts $(BUILD_METADATA_DIR)
 	echo -n '$@: ' > $(BUILD_METADATA_DIR)/$*.jsx.makedeps
-	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | grep -Fv '$@' | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
+	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ --list $< | grep -Fv '$<' | tr -s '\n' ' ' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
 	echo >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
 	sed -e 's/^[^:]*: *//' < $(BUILD_METADATA_DIR)/$*.jsx.makedeps | tr -s ' ' '\n' | sed -e 's/$$/:/' >> $(BUILD_METADATA_DIR)/$*.jsx.makedeps
 	$(BROWSERIFY) $(BROWSERIFY_FLAGS) -o $@ $<
