@@ -7,7 +7,7 @@ var IPCConnection = require('./lib/client/ipc');
 var windows = require('./lib/windows');
 
 var mui = require('material-ui'),
-    RaisedButton = mui.RaisedButton,
+    FlatButton = mui.FlatButton,
     TextField = mui.TextField;
 
 var SignIn = React.createClass({
@@ -92,7 +92,7 @@ var SignIn = React.createClass({
 			return (
 				<div>
 					<p>You are already signed in.</p>
-					<RaisedButton type="submit" primary={true} label="Sign out" />
+					<FlatButton type="submit" primary={true} label="Sign out" />
 					TODO: Implement
 				</div>
 			);
@@ -109,7 +109,9 @@ var SignIn = React.createClass({
 				{loadingBanner}<br/>
 				<TextField type="email" ref="jid" hintText="username@domain.com" autofocus disabled={this.state.loading} errorText={this.state.jidError} /><br/>
 				<TextField type="password" ref="password" hintText="Password" disabled={this.state.loading} errorText={this.state.passwordError} /><br/>
-				<RaisedButton type="submit" disabled={this.state.loading} primary={true} label="Sign in" />
+				<div className="action-button">
+					<FlatButton type="submit" disabled={this.state.loading} primary={true} label="Sign in" />
+				</div>
 			</form>
 		);
 	}
