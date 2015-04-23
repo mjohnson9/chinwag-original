@@ -14,7 +14,7 @@ var RosterItem = React.createClass({
 	render: function() {
 		var avatar;
         if(this.props.entry.avatar) {
-            avatar = <img className="avatar" src={this.props.entry.avatar} />;
+            avatar = <img className="avatar" src={this.props.entry.avatar.url} />;
         } else {
             avatar = <PersonIcon className="avatar" />;
         }

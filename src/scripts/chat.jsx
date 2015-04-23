@@ -54,7 +54,7 @@ var Message = React.createClass({
         var avatar;
         if(this.props.message.incoming) {
             if(this.props.rosterEntry.avatar) {
-                avatar = <img className="avatar" src={this.props.rosterEntry.avatar} />;
+                avatar = <img className="avatar" src={this.props.rosterEntry.avatar.url} />;
             } else {
                 avatar = <PersonIcon className="avatar" />;
             }
@@ -145,7 +145,7 @@ var Chat = React.createClass({
     },
 
     componentWillUpdate: function() {
-        this.shouldScrollBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight;
+        this.shouldScrollBottom = (window.innerHeight + window.scrollY) >= (document.body.scrollHeight-20);
     },
 
     componentDidUpdate: function() {
