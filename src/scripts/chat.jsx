@@ -8,9 +8,6 @@ var IPCConnection = require('./lib/client/ipc');
 var TimeAgo = require('./lib/client/components/time-ago');
 var PersonIcon = require('./lib/client/components/person-icon');
 
-var mui = require('material-ui'),
-    TextField = mui.TextField;
-
 var qs = (function(a) {
     if (a === "") return {};
     var b = {};

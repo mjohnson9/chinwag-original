@@ -5,17 +5,25 @@ var React = require('react');
 var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');
 var windows = require('./lib/windows');
+var PersonIcon = require('./lib/client/components/person-icon');
 
 var mui = require('material-ui'),
     RaisedButton = mui.RaisedButton;
 
 var RosterItem = React.createClass({
 	render: function() {
+		var avatar;
+        if(this.props.entry.avatar) {
+            avatar = <img className="avatar" src={this.props.entry.avatar} />;
+        } else {
+            avatar = <PersonIcon className="avatar" />;
+        }
+
 		return (
 			<li title={this.props.entry.jid} onClick={this.entryClicked}>
 				<div className="body">
 					<div className="avatar-container">
-						<img src={this.props.entry.avatar} className="avatar" />
+						{avatar}
 					</div>
 					<div className="content">
 						<div className="name">{clientCommon.displayName(this.props.entry)}</div>

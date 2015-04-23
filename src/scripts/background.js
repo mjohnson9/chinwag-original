@@ -172,8 +172,6 @@ function IPCHandler(bp) {
 // Methods
 
 IPCHandler.prototype.broadcast = function(channel, method) {
-    var args = common.sliceArguments(arguments, 2);
-
     var subscriptions = this.subscriptions[channel];
     if(!subscriptions) {
         return;
@@ -333,7 +331,6 @@ function getXMPPLang() {
 
 // ==== Connection =====
 function Connection(credentials, savedRoster) {
-    this.ready = false;
     if(savedRoster) {
         this.roster = this.decodeStoredRoster(savedRoster);
         this.roster.avatarsDirty = true;
@@ -366,11 +363,12 @@ function Connection(credentials, savedRoster) {
 
         rosterVer: this.roster.version,
 
-        transport: 'old-websocket',
-        wsURL: 'wss://websocket.jappix.com:443/'
+        transport: 'websocket',
+        wsURL: 'wss://xmpp.johnson.computer/xmpp-websocket'
     });
 
     this.loadPlugins_();
+
 
     // Bind events
     this.client.on('*', this.debugLogging.bind(this));
@@ -398,8 +396,14 @@ Connection.prototype.loadPlugins_ = function() {
 
     this.client.use(require('stanza.io/lib/plugins/time'));
 
+    this.client.use(require('stanza.io/lib/plugins/delayed'));
+    this.client.use(require('stanza.io/lib/plugins/forwarding'));
+    this.client.use(require('stanza.io/lib/plugins/carbons'));
+
     this.client.use(require('stanza.io/lib/plugins/pubsub'));
     this.client.use(require('stanza.io/lib/plugins/avatar'));
+
+    //this.client.updateCaps();
 };
 
 Connection.prototype.start = function() {
@@ -428,6 +432,9 @@ Connection.prototype.getStorableRoster = function() {
 };
 
 Connection.prototype.decodeStoredRoster = function(stored) {
+    if(!stored || !stored.data) {
+        return [];
+    }
     var roster = new Array(stored.data.length);
     roster.version = stored.version;
 
@@ -478,6 +485,7 @@ Connection.prototype.updateCredentials_ = function(newCredentials) {
 
 Connection.prototype.sendMessage = function(to, body) {
     this.client.sendMessage({
+        type: 'chat',
         to: to,
         body: body
     });
@@ -490,7 +498,7 @@ var domParser = new DOMParser();
 Connection.prototype.debugLogging = console.debug.bind(console, '[XMPP]');
 
 Connection.prototype.sessionStarted = function() {
-    //this.client.enableCarbons();
+    this.client.enableCarbons();
     this.client.getRoster(this.initialRosterReceived.bind(this));
 };
 
@@ -506,13 +514,13 @@ Connection.prototype.initialRosterReceived = function(_, response) {
     this.rosterReceived(response);
 
     this.client.sendPresence();
-    this.ready = true;
 };
 
 Connection.prototype.rosterReceived = function(iq) {
     var roster = iq.roster;
-    if(!roster) {
-        // This is just an ack that our version is up-to-date.
+    if(!roster || !roster.items) {
+        // This is just an ack that our version is up-to-date
+        // or that the roster is empty
         if(this.roster.avatarsDirty) {
             for(var i = 0, len = this.roster.length; i < len; i++) {
                 var item = this.roster[i];
@@ -572,7 +580,7 @@ Connection.prototype.rosterReceived = function(iq) {
     this.roster.version = iq.roster.ver;
 
     if(this.roster.avatarsDirty) {
-        for(var l = 0, lLen = this.roster.length; l < lLen; i++) {
+        for(var l = 0, lLen = this.roster.length; l < lLen; l++) {
             var rosterItem = this.roster[l];
             this.fetchAvatar(rosterItem.jid);
         }
@@ -605,6 +613,11 @@ function base64toBlob(base64Data, contentType) {
 }
 
 Connection.prototype.avatarReceived = function(_, stanza) {
+    if(!stanza) {
+        console.warn('Empty avatar response received');
+        return;
+    }
+
     var user = stanza.from.bare;
     var avatar = base64toBlob(stanza.pubsub.retrieve.item.avatarData, "image/png");
     var avatarUrl = window.URL.createObjectURL(avatar);
