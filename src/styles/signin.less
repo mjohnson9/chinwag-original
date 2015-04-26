@@ -1,23 +1,50 @@
 @import "common.less";
-
-body {
-}
+@import "spinner.less";
 
 form {
-	position: relative;
+	> .spinner-container {
+		position: absolute;
 
-	text-align: center;
+		top: 16px;
+		left: 50%;
 
-	width: 264px;
-	height: 210px;
+		transform: translateX(-50%);
 
-	margin: auto;
+		> .mui-paper-container {
+			padding: 8px;
 
-	> .action-button {
+			width: 40px;
+			height: 40px;
+
+			> .spinner {
+				width: 24px;
+				height: 24px
+			}
+		}
+	}
+
+	> h3 {
+		padding: 24px 24px 0 24px;
+		margin: 0;
+	}
+
+	> .content {
+		padding: 24px;
+
+		> .mui-text-field {
+			width: 100%;
+		}
+	}
+
+	> .actions {
 		text-align: right;
 
-		position: absolute;
-		bottom: 0;
-		right: 0;
+		padding: 8px;
+		margin-bottom: 8px;
+		width: 100%;
+
+		> .action-button {
+			margin-right: 8px;
+		}
 	}
 }

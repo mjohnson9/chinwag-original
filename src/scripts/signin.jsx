@@ -6,7 +6,9 @@ var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');
 var windows = require('./lib/windows');
 
+var Spinner = require('./lib/client/components/spinner');
 var mui = require('material-ui'),
+    Paper = mui.Paper,
     FlatButton = mui.FlatButton,
     TextField = mui.TextField;
 
@@ -100,17 +102,20 @@ var SignIn = React.createClass({
 
 		var loadingBanner;
 		if(this.state.loading) {
-			loadingBanner = <div>Logging in...</div>;
+			loadingBanner = <Paper className="spinner-container" zDepth={1} circle={true}><Spinner/></Paper>;
 			// TODO: Make a better loading indicator
 		}
 
 		return (
 			<form onSubmit={this.formSubmitted}>
-				{loadingBanner}<br/>
-				<TextField type="email" ref="jid" hintText="username@domain.com" autofocus disabled={this.state.loading} errorText={this.state.jidError} /><br/>
-				<TextField type="password" ref="password" hintText="Password" disabled={this.state.loading} errorText={this.state.passwordError} /><br/>
-				<div className="action-button">
-					<FlatButton type="submit" disabled={this.state.loading} primary={true} label="Sign in" />
+				{loadingBanner}
+				<h3>Sign In</h3>
+				<div className="content">
+					<TextField type="email" ref="jid" hintText="username@domain.com" autofocus disabled={this.state.loading} errorText={this.state.jidError} /><br/>
+					<TextField type="password" ref="password" hintText="Password" disabled={this.state.loading} errorText={this.state.passwordError} />
+				</div>
+				<div className="actions">
+					<FlatButton className="action-button" type="submit" disabled={this.state.loading} primary={true} label="Sign in" />
 				</div>
 			</form>
 		);

@@ -78,8 +78,8 @@ module.exports = {
 			chrome.windows.create({
 				url: '/signin.html',
 
-				width: 280,
-				height: 495,
+				width: 540,
+				height: 300,
 
 				focused: true,
 				type: 'detached_panel'

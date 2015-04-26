@@ -7,10 +7,10 @@ ENVIRONMENT=development
 BROWSERIFY=./node_modules/.bin/browserify
 
 git_sha=$(shell git rev-parse --verify HEAD)
-BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
+BROWSERIFY_FLAGS=--debug --extension .jsx -t [ reactify --extension jsx ] -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ] -g uglifyify
 
 LESSC=./node_modules/.bin/lessc
-LESSC_FLAGS=--clean-css="--s0 --compatibility='*'"
+LESSC_FLAGS=--clean-css="--s0 --compatibility='*'" --autoprefix="last 2 Chrome versions"
 
 MINIMIZE=./node_modules/.bin/minimize
 MINIMIZE_FLAGS=
