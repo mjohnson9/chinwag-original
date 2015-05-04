@@ -1,32 +1,72 @@
 import buffer from 'buffer';
 
+import {BoundClass} from '../lib/util';
 import Connection from './connection';
 import IPCHandler from './ipc';
+import Storage from './storage';
+import * as promiseUtil from '../lib/promise';
 import windows from '../lib/windows';
+
+class ipcMethods extends BoundClass {
+	constructor(page) {
+		super();
+
+		this.page = page;
+	}
+
+	getRoster() {
+		return this.page.getRoster();
+	}
+
+	isAuthed() {
+		if(this.page.requiresAuth === undefined) {
+			return null;
+		}
+		return !this.page.requiresAuth;
+	}
+
+	authenticate(connection, jid, password) {
+		this.page.authenticate(jid, password);
+	}
+
+	getMessageHistory(connection, jid) {
+		return this.page.getMessageHistory(jid);
+	}
+
+	sendMessage(connection, jid, message) {
+		return this.page.sendMessage(jid, message);
+	}
+}
 
 class BackgroundPage {
 	constructor() {
 		chrome.browserAction.onClicked.addListener(this.browserActionClicked.bind(this));
 	    chrome.runtime.onInstalled.addListener(this.onInstalled.bind(this));
 
-	    this.ipcHandler = new IPCHandler(this);
+	    this.ipcHandler = new IPCHandler(this, new ipcMethods(this));
 
-	    this.createClient();
+	    this.storage = new Storage();
+	    this.storage.on('ready', this.createClient.bind(this));
 	}
 
 	createClient() {
-		chrome.storage.local.get(['credentials', 'roster'], this.initialStorageRetrieve.bind(this));
+		//chrome.storage.local.get(['credentials', 'roster'], this.initialStorageRetrieve.bind(this));
+		promiseUtil.map({
+			credentials: this.storage.getSetting('credentials'),
+			rosterVersion: this.storage.getSetting('rosterVersion')
+		}).then(this.initialStorageRetrieve.bind(this));
 	}
 
 	authenticate(jid, password) {
 	    console.debug('Received authenticate request. Removing existing authentication data.');
+
 	    if(this.client) {
 	        console.debug('Stopping client...');
 	        this.client.stop();
 	        delete this.client;
 	    }
 
-	    chrome.storage.local.remove(['credentials', 'roster'], this.authenticate_.bind(this, jid, password));
+        this.storage.clear().then(this.authenticate_.bind(this, jid, password));
 	}
 
 	authenticate_(jid, password) {
@@ -46,7 +86,9 @@ class BackgroundPage {
 	    this.client = new Connection(credentials, roster);
 
 	    this.client.on('credentialsUpdated', this.credentialsUpdated.bind(this));
-	    this.client.on('rosterUpdated', this.rosterUpdated.bind(this));
+	    this.client.on('roster:update', this.rosterUpdated.bind(this, true));
+	    this.client.on('roster:remove', this.rosterUpdated.bind(this, false));
+	    this.client.on('roster:version', this.newRosterVersion.bind(this));
 	    this.client.on('messagesUpdated', this.messagesUpdated.bind(this));
 	    this.client.on('authResult', this.authResult.bind(this));
 
@@ -54,11 +96,11 @@ class BackgroundPage {
 	}
 
 	getRoster() {
-	    if(this.client === undefined) {
+	    if(this.storage === undefined || !this.storage.ready) {
 	        return null;
 	    }
 
-	    return this.client.roster;
+	    return this.storage.getRosterItems();
 	}
 
 	getMessageHistory(jid) {
@@ -87,14 +129,34 @@ class BackgroundPage {
 	}
 
 	credentialsUpdated(credentials) {
-	    var stringified = JSON.stringify(credentials);
-	    chrome.storage.local.set({credentials: stringified});
+	    //var stringified = JSON.stringify(credentials);
+	    //chrome.storage.local.set({credentials: stringified});
+	    this.storage.setSetting('credentials', credentials);
 	}
 
-	rosterUpdated(roster) {
-	    this.ipcHandler.broadcast('roster', 'rosterUpdated', this.getRoster());
+	broadcastNewRoster_() {
+		return this.storage.getRosterItems().then((rosterItems) => {
+			this.ipcHandler.broadcast('roster', 'rosterUpdated', rosterItems);
+		});
+	}
 
-	    chrome.storage.local.set({roster: JSON.stringify(roster)});
+	rosterUpdated(add, rosterItem, rosterVersion) {
+	    // this.ipcHandler.broadcast('roster', 'rosterUpdated', this.getRoster());
+
+	    if(!add) {
+	    	// TODO: Broadcast change to IPC channels
+	    	this.storage.removeRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
+	    	return;
+	    }
+
+	    // TODO: Broadcast change to IPC channels
+	    this.storage.setRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
+
+	    //chrome.storage.local.set({roster: JSON.stringify(roster)});
+	}
+
+	newRosterVersion(version) {
+		this.storage.setSetting('rosterVersion', version);
 	}
 
 	messagesUpdated(jid, messageHistory) {
@@ -113,39 +175,30 @@ class BackgroundPage {
 	}
 
 	initialStorageRetrieve(objects) {
-	    var credentials;
+		console.info('initialStorageRetrieve:', objects);
+
 	    if(objects.credentials) {
-	        credentials = JSON.parse(objects.credentials);
-	        for(var propertyName in credentials) {
-	            if(!credentials.hasOwnProperty(propertyName)) {
+	        for(var propertyName in objects.credentials) {
+	            if(!objects.credentials.hasOwnProperty(propertyName)) {
 	                continue;
 	            }
 
-	            var property = credentials[propertyName];
-	            if(!(property instanceof Object)) {
-	                continue;
-	            }
-	            if(property.type !== "Buffer") {
+	            var property = objects.credentials[propertyName];
+	            if(!(property instanceof Uint8Array)) {
 	                continue;
 	            }
 
-	            var arr = new buffer.Buffer(property.data);
-	            credentials[propertyName] = arr;
+	            objects.credentials[propertyName] = buffer.Buffer(property, property.length, 0);
 	        }
 	    }
 
-	    if(!credentials) {
+	    if(!objects.credentials) {
 	        this.requiresAuth = true;
 	        this.ipcHandler.broadcast('auth', 'authUpdated', !this.requiresAuth);
 	        return;
 	    }
 
-	    var savedRoster;
-	    if(objects.roster) {
-	        savedRoster = JSON.parse(objects.roster);
-	    }
-
-	    this.createClient_(credentials, savedRoster);
+	    this.createClient_(objects.credentials, objects.rosterVersion);
 	}
 }
 

@@ -1,48 +1,33 @@
 import events from 'events';
 
+import {BoundClass} from '../lib/util';
 import common from '../lib/common';
 
-class ipcMethods {
+class ipcMethods extends BoundClass {
+	constructor(handler) {
+		super();
+
+		this.ipcHandler = handler;
+	}
+
 	subscribe(connection, channel) {
 		console.info(connection.port.sender.url, 'subscribed to', channel);
-		var subscriptions = this.subscriptions[channel];
+		var subscriptions = this.ipcHandler.subscriptions[channel];
 		if(!subscriptions) {
-			this.subscriptions[channel] = [connection];
+			this.ipcHandler.subscriptions[channel] = [connection];
 			return;
 		}
 
 		subscriptions.push(connection);
 	}
-
-	getRoster() {
-		return this.page.getRoster();
-	}
-
-	isAuthed() {
-		if(this.page.requiresAuth === undefined) {
-			return null;
-		}
-		return !this.page.requiresAuth;
-	}
-
-	authenticate(connection, jid, password) {
-		this.page.authenticate(jid, password);
-	}
-
-	getMessageHistory(connection, jid) {
-		return this.page.getMessageHistory(jid);
-	}
-
-	sendMessage(connection, jid, message) {
-		return this.page.sendMessage(jid, message);
-	}
 }
 
 class IPCHandler {
-	constructor(backgroundPage) {
+	constructor(backgroundPage, methodHandler = {}) {
 		this.page = backgroundPage;
 
-		this.methods = new ipcMethods();
+		this.builtinMethods = new ipcMethods(this);
+		this.methods = methodHandler;
 
 		this.connections = [];
 		this.subscriptions = {};
@@ -115,15 +100,22 @@ class IPCHandler {
 
 		args.unshift(connection);
 
-		var method = this.methods[msg.method];
+		var method = this.methods[msg.method] != null ? this.methods[msg.method] : this.builtinMethods[msg.method];
 		if(!method) {
 			console.warn('IPC: Unknown method from', connection.port.sender.url, msg.method);
 			return;
 		}
 
-		var retVal = method.apply(this, args);
+		var retVal = method.apply(null, args);
 
 		if(msg.id) {
+			if(retVal instanceof Promise) {
+				retVal.then((val) => {
+					connection.sendResponse(msg.id, val);
+				});
+				return;
+			}
+
 			connection.sendResponse(msg.id, retVal);
 		}
 	}
