@@ -48,6 +48,11 @@ clean:
 	rm -f $(ARCHIVE)
 
 
+test:
+	# Fake test target. We don't have any tests yet.
+	@echo No tests implemented
+
+
 $(DEST_DIR) $(BUILD_METADATA_DIR):
 	mkdir -p $@
 
