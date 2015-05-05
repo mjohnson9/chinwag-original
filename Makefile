@@ -7,7 +7,7 @@ ENVIRONMENT=development
 BROWSERIFY=./node_modules/.bin/browserify
 
 git_sha=$(shell git rev-parse --verify HEAD)
-BROWSERIFY_FLAGS=--debug --fast --extension .jsx  -t [ reactify --es6 --extension jsx ] -t es6ify -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
+BROWSERIFY_FLAGS=--debug --fast --extension .jsx -t [ es6ify --extension js ] -t [ reactify --target es5 --extension jsx ] -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
 
 LESSC=./node_modules/.bin/lessc
 LESSC_FLAGS=--clean-css="--s0 --compatibility='*'" --autoprefix="last 2 Chrome versions"

@@ -23,9 +23,7 @@ class ipcMethods extends BoundClass {
 }
 
 class IPCHandler {
-	constructor(backgroundPage, methodHandler = {}) {
-		this.page = backgroundPage;
-
+	constructor(methodHandler = {}) {
 		this.builtinMethods = new ipcMethods(this);
 		this.methods = methodHandler;
 

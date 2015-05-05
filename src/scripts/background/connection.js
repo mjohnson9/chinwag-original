@@ -11,12 +11,7 @@ function getXMPPLang() {
 }
 
 class Connection extends events.EventEmitter {
-	constructor(credentials, savedRoster) {
-		if(savedRoster) {
-			this.roster = this.decodeStoredRoster(savedRoster);
-		} else {
-			this.roster = [];
-		}
+	constructor(credentials, rosterVersion) {
 
 		this.messages = {};
 
@@ -41,7 +36,7 @@ class Connection extends events.EventEmitter {
 				saltedPassword: credentials.saltedPassword
 			},
 
-			rosterVer: this.roster.version,
+			rosterVer: rosterVersion,
 
 			transports: ['websocket', 'bosh']
 		});
@@ -89,65 +84,6 @@ class Connection extends events.EventEmitter {
 
 	stop() {
 		this.client.disconnect();
-	}
-
-	getStorableRoster() {
-		var storable = new Array(this.roster.length);
-
-		for(var i = 0, len = this.roster.length; i < len; i++) {
-			storable[i] = this.standardizeRosterEntry_(this.roster[i]);
-		}
-
-		return {
-			version: this.roster.version,
-			data: storable
-		};
-	}
-
-	decodeStoredRoster(stored) {
-		if(!stored || !stored.data) {
-			return [];
-		}
-		var roster = new Array(stored.data.length);
-		roster.version = stored.version;
-
-		for(var i = 0, len = stored.data.length; i < len; i++) {
-			roster[i] = this.unstandardizeRosterEntry_(stored.data[i]);
-		}
-
-		return roster;
-	}
-
-	standardizeRosterEntry_(entry) {
-		var res = {
-			jid: entry.jid.bare || entry.jid,
-			name: entry.name,
-			subscription: entry.subscription,
-		};
-		if(entry.avatar) {
-			res.avatar = {
-				id: entry.avatar.id,
-				url: entry.avatar.url
-			};
-		}
-
-		return res;
-	}
-
-	unstandardizeRosterEntry_(entry) {
-		var res = {
-			jid: new XMPP.JID(entry.jid),
-			name: entry.name,
-			subscription: entry.subscription
-		};
-		if(entry.avatar) {
-			res.avatar = {
-				id: entry.avatar.id,
-				url: entry.avatar.url
-			};
-		}
-
-		return res;
 	}
 
 	updateCredentials_(newCredentials) {
@@ -271,7 +207,12 @@ class Connection extends events.EventEmitter {
 	}
 
 	avatarReceived(stanza) {
-		if(stanza.source !== 'pubsub') return;
+		if(stanza.source !== 'pubsub') {
+			console.warn('ignoring non-pubsub avatar:', stanza);
+			return;
+		}
+
+		console.info('avatar received:', stanza);
 
 		var user = stanza.jid.bare;
 
@@ -293,7 +234,7 @@ class Connection extends events.EventEmitter {
 
 		if(!stanza.avatars || stanza.avatars.length === 0) {
 			delete rosterItem.avatar;
-			this.emit('rosterUpdated', this.getStorableRoster(this.roster));
+			this.emit('rosterUpdated', true, rosterItem);
 			return;
 		}
 
@@ -337,6 +278,10 @@ class Connection extends events.EventEmitter {
 				id: avatarID,
 				url: avatarUrl
 			};
+
+
+			this.emit('rosterUpdated', true, rosterItem);
+
 			found = true;
 			break;
 		}
@@ -344,8 +289,6 @@ class Connection extends events.EventEmitter {
 		if(!found) {
 			return;
 		}
-
-		this.emit('rosterUpdated', this.getStorableRoster(this.roster));
 	}
 
 	handleMessage(incoming, stanza) {
@@ -356,12 +299,12 @@ class Connection extends events.EventEmitter {
 		}
 
 		var msg = {
-			_internalID: common.uuid(),
+			incoming: incoming,
 
-			from: stanza.from.bare,
+			from: stanza.from.bare != "" ? stanza.from.bare : this.client.jid.bare,
 			to: stanza.to.bare,
-			body: stanza.body,
-			incoming: incoming
+
+			body: stanza.body
 		};
 
 		if(stanza.delay && stanza.delay.stamp) {
@@ -369,42 +312,8 @@ class Connection extends events.EventEmitter {
 		} else {
 			msg.time = new Date();
 		}
-		msg.time = msg.time.toISOString();
 
-		var conversation;
-		if(incoming) {
-			conversation = stanza.from.bare;
-		} else {
-			conversation = stanza.to.bare;
-		}
-
-		var messageHistory = this.messages[conversation];
-		if(!messageHistory) {
-			messageHistory = [msg];
-			this.messages[conversation] = messageHistory;
-		} else {
-			var firstMessage = messageHistory[messageHistory.length-1];
-			if(Date.parse(firstMessage.time) < Date.parse(msg.time)) {
-				messageHistory.push(msg);
-			} else {
-				for(var i = messageHistory.length-1; i >= 0; i--) {
-					var thisMessage = messageHistory[i];
-					if(Date.parse(thisMessage.time) < Date.parse(msg.time)) {
-						continue;
-					}
-
-					messageHistory.splice(i, 0, msg);
-					break;
-				}
-			}
-		}
-
-		if(messageHistory.length > 50) {
-			messageHistory = messageHistory.splice(messageHistory.length - 50);
-			this.messages[conversation] = messageHistory;
-		}
-
-		this.emit('messagesUpdated', conversation, messageHistory);
+		this.emit('message', msg);
 	}
 }
 

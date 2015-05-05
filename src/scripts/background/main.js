@@ -22,6 +22,7 @@ class ipcMethods extends BoundClass {
 		if(this.page.requiresAuth === undefined) {
 			return null;
 		}
+
 		return !this.page.requiresAuth;
 	}
 
@@ -43,10 +44,14 @@ class BackgroundPage {
 		chrome.browserAction.onClicked.addListener(this.browserActionClicked.bind(this));
 	    chrome.runtime.onInstalled.addListener(this.onInstalled.bind(this));
 
-	    this.ipcHandler = new IPCHandler(this, new ipcMethods(this));
+	    this.ipcHandler = new IPCHandler(new ipcMethods(this));
 
 	    this.storage = new Storage();
-	    this.storage.on('ready', this.createClient.bind(this));
+	    this.storagePromise = new Promise((resolve, reject) => {
+	    	this.storage.once('ready', () => resolve())
+	    });
+
+	    this.storagePromise.then(this.createClient.bind(this));
 	}
 
 	createClient() {
@@ -77,38 +82,30 @@ class BackgroundPage {
 	    });
 	}
 
-	createClient_(credentials, roster) {
+	createClient_(credentials, rosterVersion) {
 		if(this.client) {
 	        this.client.stop();
 	        delete this.client;
 	    }
 
-	    this.client = new Connection(credentials, roster);
+	    this.client = new Connection(credentials, rosterVersion);
 
 	    this.client.on('credentialsUpdated', this.credentialsUpdated.bind(this));
 	    this.client.on('roster:update', this.rosterUpdated.bind(this, true));
 	    this.client.on('roster:remove', this.rosterUpdated.bind(this, false));
 	    this.client.on('roster:version', this.newRosterVersion.bind(this));
-	    this.client.on('messagesUpdated', this.messagesUpdated.bind(this));
+	    this.client.on('message', this.handleMessage.bind(this));
 	    this.client.on('authResult', this.authResult.bind(this));
 
 	    this.client.start();
 	}
 
 	getRoster() {
-	    if(this.storage === undefined || !this.storage.ready) {
-	        return null;
-	    }
-
-	    return this.storage.getRosterItems();
-	}
-
-	getMessageHistory(jid) {
-	    if(this.client === undefined) {
-	        return null;
-	    }
-
-	    return this.client.messages[jid];
+	    return new Promise((resolve, reject) => {
+	    	this.storagePromise.then(() => {
+	    		resolve(this.storage.getRosterItems());
+	    	})
+	    })
 	}
 
 	sendMessage(jid, message) {
@@ -140,7 +137,7 @@ class BackgroundPage {
 		});
 	}
 
-	rosterUpdated(add, rosterItem, rosterVersion) {
+	rosterUpdated(add, rosterItem) {
 	    // this.ipcHandler.broadcast('roster', 'rosterUpdated', this.getRoster());
 
 	    if(!add) {
@@ -159,8 +156,26 @@ class BackgroundPage {
 		this.storage.setSetting('rosterVersion', version);
 	}
 
-	messagesUpdated(jid, messageHistory) {
-    	this.ipcHandler.broadcast('messages:'+jid, 'messagesUpdated', messageHistory);
+	getMessageHistory(jid) {
+	    /*if(!this.storage.ready) {
+	        return null;
+	    }*/
+
+	    return new Promise((resolve, reject) => {
+	    	this.storagePromise.then(() => {
+	    		resolve(this.storage.getMessages(jid));
+	    	});
+	    });
+	}
+
+	handleMessage(msg) {
+		var jid = msg.incoming ? msg.from : msg.to;
+
+    	this.storage.addMessage(msg).then((msgID) => {
+    		this.getMessageHistory(jid).then((messages) => {
+    			this.ipcHandler.broadcast('messages:'+jid, 'messagesUpdated', messages);
+    		})
+    	})
 	}
 
 	authResult(success) {

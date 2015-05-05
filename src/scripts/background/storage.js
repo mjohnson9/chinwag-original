@@ -19,6 +19,20 @@ export default class Store extends events.EventEmitter {
 
 				roster: {
 					key: {keyPath: 'jid'}
+				},
+
+				conversation: {
+					key: {keyPath: 'jid'},
+					indexes: {
+						lastMessage: {}
+					}
+				},
+
+				message: {
+					key: {keyPath: 'id', autoIncrement: true},
+					indexes: {
+						conversation: {}
+					}
 				}
 			}
 		}).then(this.databaseOpened_.bind(this)).catch(this.databaseError_.bind(this));
@@ -27,7 +41,12 @@ export default class Store extends events.EventEmitter {
 	// Global
 
 	clear() {
-		return Promise.all([this.db_.clear('settings'), this.db_.clear('roster')]);
+		return Promise.all([
+			this.db_.clear('settings'),
+			this.db_.clear('roster'),
+			this.db_.clear('conversation'),
+			this.db_.clear('message')
+		]);
 	}
 
 	// Settings
@@ -56,6 +75,47 @@ export default class Store extends events.EventEmitter {
 
 	removeRosterItem(jid) {
 		return this.db_.roster.remove(jid);
+	}
+
+	// Conversations
+
+	getConversations() {
+		return this.db_.conversation.query('lastMessage').all().desc().execute();
+	}
+
+	touchConversation(jid, lastMessage=Date.now()) {
+		return this.db_.conversation.update({jid: jid, lastMessage: lastMessage});
+	}
+
+	removeConversation(jid) {
+		return this.db_.conversation.remove(jid);
+	}
+
+	// Messages
+
+	getMessages(jid) {
+		return this.db_.message.query('conversation').only(jid).execute();
+	}
+
+	addMessage(msg) {
+		var normalizedMsg = {
+			incoming: msg.incoming,
+			conversation: msg.incoming ? msg.from : msg.to,
+
+			from: msg.from,
+			to: msg.to,
+
+			body: msg.body,
+
+			time: msg.time.getTime()
+		};
+
+		return this.db_.message.add(normalizedMsg).then((stored) => {
+			if(!stored) return;
+			if(!stored[0]) return;
+
+			return stored[0].id;
+		});
 	}
 
 	// Misc.

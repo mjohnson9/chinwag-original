@@ -1,80 +1,4 @@
-require('./lib/error-reporting');
-
-var React = require('react');
-
-var common = require('./lib/common');
-var clientCommon = require('./lib/client/common');
-var IPCConnection = require('./lib/client/ipc');
-var TimeAgo = require('./lib/client/components/time-ago');
-var PersonIcon = require('./lib/client/components/person-icon');
-
-var qs = (function(a) {
-    if (a === "") return {};
-    var b = {};
-    for (var i = 0; i < a.length; ++i)
-    {
-        var p=a[i].split('=', 2);
-        if (p.length == 1)
-            b[p[0]] = "";
-        else
-            b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-    }
-    return b;
-})(window.location.search.substr(1).split('&'));
-
-var SendBox = React.createClass({
-    submit: function(ev) {
-        if(ev.key !== "Enter" || ev.ctrlKey || ev.shiftKey) return;
-
-        ev.preventDefault();
-
-        var inputBox = React.findDOMNode(this.refs.inputBox);
-
-        var messagePlaintext = inputBox.innerText.trim();
-        var messageHTML = inputBox.innerHTML.trim();
-        if(!messagePlaintext || !messageHTML) {
-            return;
-        }
-
-        inputBox.innerHTML = "";
-
-        this.props.onSendMessage(messagePlaintext, messageHTML);
-    },
-    render: function() {
-        return (
-            <div className="sendBox">
-                <span ref="inputBox" onKeyPress={this.submit} contentEditable={true}/>
-            </div>
-        );
-    }
-});
-
-var Message = React.createClass({
-    render: function() {
-        var avatar;
-        if(this.props.message.incoming) {
-            if(this.props.rosterEntry.avatar) {
-                avatar = <img className="avatar" src={this.props.rosterEntry.avatar.url} />;
-            } else {
-                avatar = <PersonIcon className="avatar" />;
-            }
-        }
-
-        return (
-            <li className={"message"+(!this.props.message.incoming ? " sent" : "")}>
-                {avatar}
-                <span>
-                    <p>{this.props.message.body}</p>
-                    <div className="info">
-                        <TimeAgo time={this.props.message.time} />
-                    </div>
-                </span>
-            </li>
-        );
-    }
-});
-
-var Chat = React.createClass({
+export default React.createClass({
     componentDidMount: function() {
         this.jid = qs.jid;
 
@@ -97,32 +21,31 @@ var Chat = React.createClass({
         var oldMessages = this.state.messages.slice();
         this.state.messages.dirty = true;
         this.state.messages.push({
-            id: "temp+"+common.uuid(),
+            _internalID: common.uuid(),
 
             body: messagePlaintext,
             incoming: false,
             time: new Date().toISOString(),
             to: this.jid
         });
-        this.ipcConnection.call(function(success) {
+        this.ipcConnection.call((success) => {
             if(!success) {
                 if(this.state.messages.dirty) {
                     this.setState({messages: oldMessages});
                 }
                 return;
             }
-        }.bind(this), 'sendMessage', this.jid, messagePlaintext, messageHTML);
+        }, 'sendMessage', this.jid, messagePlaintext, messageHTML);
 
         this.setState({messages: this.state.messages});
     },
 
     rosterUpdated: function(roster) {
-        if(!roster) return;
+        if(!roster) roster = [];
 
         var entry;
 
-        for(var i = 0, len = roster.length; i < len; i++) {
-            var thisEntry = roster[i];
+        for(let thisEntry of roster) {
             if(thisEntry.jid !== this.jid) {
                 continue;
             }
@@ -165,7 +88,7 @@ var Chat = React.createClass({
 
         var messages = this.state.messages.map(function(message, index) {
             return (
-                <Message rosterEntry={this.state.rosterEntry} message={message} key={message.id} />
+                <Message rosterEntry={this.state.rosterEntry} message={message} key={message._internalID} />
             );
         }.bind(this));
 
@@ -178,8 +101,3 @@ var Chat = React.createClass({
         );
     }
 });
-
-React.render(
-    <Chat/>,
-    document.getElementsByTagName('body')[0]
-);
