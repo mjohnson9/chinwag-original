@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "db.js": "^0.10.1",
+    "emojione": "^1.4.0",
     "heir": "^3.0.0",
     "material-ui": "^0.7.3",
     "moment": "^2.10.2",

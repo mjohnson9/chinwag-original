@@ -31,7 +31,7 @@ class ipcMethods extends BoundClass {
 	}
 
 	getMessageHistory(connection, jid) {
-		return this.page.getMessageHistory(jid);
+		return this.page.getMessageHistory(jid/*, 50*/);
 	}
 
 	sendMessage(connection, jid, message) {
@@ -51,15 +51,16 @@ class BackgroundPage {
 	    	this.storage.once('ready', () => resolve())
 	    });
 
-	    this.storagePromise.then(this.createClient.bind(this));
+	    this.createClient();
 	}
 
 	createClient() {
-		//chrome.storage.local.get(['credentials', 'roster'], this.initialStorageRetrieve.bind(this));
-		promiseUtil.map({
-			credentials: this.storage.getSetting('credentials'),
-			rosterVersion: this.storage.getSetting('rosterVersion')
-		}).then(this.initialStorageRetrieve.bind(this));
+		return this.storagePromise.then(() => {
+			return promiseUtil.map({
+				credentials: this.storage.getSetting('credentials'),
+				rosterVersion: this.storage.getSetting('rosterVersion')
+			}).then(this.initialStorageRetrieve.bind(this));
+		});
 	}
 
 	authenticate(jid, password) {
@@ -71,7 +72,9 @@ class BackgroundPage {
 	        delete this.client;
 	    }
 
-        this.storage.clear().then(this.authenticate_.bind(this, jid, password));
+	    return this.storagePromise.then(() => {
+        	return this.storage.clear().then(this.authenticate_.bind(this, jid, password));
+	    });
 	}
 
 	authenticate_(jid, password) {
@@ -101,11 +104,9 @@ class BackgroundPage {
 	}
 
 	getRoster() {
-	    return new Promise((resolve, reject) => {
-	    	this.storagePromise.then(() => {
-	    		resolve(this.storage.getRosterItems());
-	    	})
-	    })
+	    return this.storagePromise.then(() => {
+    		return this.storage.getRosterItems();
+    	});
 	}
 
 	sendMessage(jid, message) {
@@ -126,56 +127,49 @@ class BackgroundPage {
 	}
 
 	credentialsUpdated(credentials) {
-	    //var stringified = JSON.stringify(credentials);
-	    //chrome.storage.local.set({credentials: stringified});
-	    this.storage.setSetting('credentials', credentials);
+	    return this.storagePromise.then(() => {
+	    	return this.storage.setSetting('credentials', credentials);
+	    });
 	}
 
 	broadcastNewRoster_() {
-		return this.storage.getRosterItems().then((rosterItems) => {
-			this.ipcHandler.broadcast('roster', 'rosterUpdated', rosterItems);
+		return this.storagePromise.then(() => {
+			return this.storage.getRosterItems().then((rosterItems) => {
+				this.ipcHandler.broadcast('roster', 'rosterUpdated', rosterItems);
+			});
 		});
 	}
 
 	rosterUpdated(add, rosterItem) {
-	    // this.ipcHandler.broadcast('roster', 'rosterUpdated', this.getRoster());
-
 	    if(!add) {
-	    	// TODO: Broadcast change to IPC channels
-	    	this.storage.removeRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
-	    	return;
+	    	return this.storage.removeRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));;
 	    }
 
-	    // TODO: Broadcast change to IPC channels
-	    this.storage.setRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
-
-	    //chrome.storage.local.set({roster: JSON.stringify(roster)});
+	    return this.storage.setRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
 	}
 
 	newRosterVersion(version) {
-		this.storage.setSetting('rosterVersion', version);
+		return this.storagePromise.then(() => {
+			return this.storage.setSetting('rosterVersion', version);
+		});
 	}
 
-	getMessageHistory(jid) {
-	    /*if(!this.storage.ready) {
-	        return null;
-	    }*/
-
-	    return new Promise((resolve, reject) => {
-	    	this.storagePromise.then(() => {
-	    		resolve(this.storage.getMessages(jid));
-	    	});
-	    });
+	getMessageHistory(jid, limit) {
+	    return this.storagePromise.then(() => {
+    		return this.storage.getMessages(jid, limit);
+    	});
 	}
 
 	handleMessage(msg) {
 		var jid = msg.incoming ? msg.from : msg.to;
 
-    	this.storage.addMessage(msg).then((msgID) => {
-    		this.getMessageHistory(jid).then((messages) => {
-    			this.ipcHandler.broadcast('messages:'+jid, 'messagesUpdated', messages);
-    		})
-    	})
+    	return this.storagePromise.then(() => {
+    		return this.storage.addMessage(msg).then((msgID) => {
+	    		return this.getMessageHistory(jid).then((messages) => {
+	    			this.ipcHandler.broadcast('messages:'+jid, 'messagesUpdated', messages);
+	    		});
+	    	});
+    	});
 	}
 
 	authResult(success) {

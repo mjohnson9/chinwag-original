@@ -26,6 +26,12 @@ html, body {
 		padding-left: 8px;*/
 	}
 
+	.emojione {
+		width: 16px;
+		height: 16px;
+		vertical-align: text-bottom;
+	}
+
 	ul {
 		width: 100%;
 		//min-height: 100%;
@@ -61,7 +67,7 @@ html, body {
 				border: 1px solid rgba(0, 0, 0, 0.12);
 			}
 
-			& > span {
+			> span {
 				-webkit-user-select: text;
 
 				//color: @dark-text-primary;
@@ -111,15 +117,14 @@ html, body {
 
 		border-top: 1px solid rgba(0, 0, 0, 0.12);
 
-		span {
+		> div {
 			width: 100%;
 			min-height: 100%;
 
-			outline: none;
+			/*outline: none;
+			border: 0;*/
 
 			padding: 0 8px;
-
-			border: 0;
 		}
 	}
 }

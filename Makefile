@@ -40,7 +40,7 @@ styles_part1=$(STYLES:%.less=%.css)
 styles_resolved=$(subst $(SRC_DIR),$(DEST_DIR),$(styles_part1))
 
 
-all: $(DEST_DIR)/manifest.json $(DEST_DIR)/fonts $(DEST_DIR)/icons $(DEST_DIR)/_locales $(entrypoint_bundles) $(pages_resolved) $(styles_resolved)
+all: $(DEST_DIR)/manifest.json $(DEST_DIR)/emoji $(DEST_DIR)/fonts $(DEST_DIR)/icons $(DEST_DIR)/_locales $(entrypoint_bundles) $(pages_resolved) $(styles_resolved)
 
 clean:
 	rm -rf $(DEST_DIR)
@@ -63,6 +63,9 @@ $(DEST_DIR)/fonts: $(SRC_DIR)/fonts | $(DEST_DIR)
 	cp -ra $</. $@
 
 $(DEST_DIR)/icons: $(SRC_DIR)/icons | $(DEST_DIR)
+	cp -ra $</. $@
+
+$(DEST_DIR)/emoji: node_modules/emojione/assets/svg | $(DEST_DIR)
 	cp -ra $</. $@
 
 $(DEST_DIR)/_locales: $(SRC_DIR)/_locales | $(DEST_DIR)

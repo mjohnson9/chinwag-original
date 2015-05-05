@@ -2,9 +2,16 @@ require('./lib/error-reporting');
 
 var React = require('react');
 
+var escapeTextContentForBrowser = require('react/lib/escapeTextContentForBrowser');
+
+var emojione = require('./lib/emoji');
+window.emojione = emojione;
+
 var common = require('./lib/common');
 var clientCommon = require('./lib/client/common');
 var IPCConnection = require('./lib/client/ipc');
+
+var ContentEditable = require('./lib/client/components/contenteditable');
 var TimeAgo = require('./lib/client/components/time-ago');
 var PersonIcon = require('./lib/client/components/person-icon');
 
@@ -22,34 +29,70 @@ var qs = (function(a) {
     return b;
 })(window.location.search.substr(1).split('&'));
 
-var SendBox = React.createClass({
-    submit: function(ev) {
-        if(ev.key !== "Enter" || ev.ctrlKey || ev.shiftKey) return;
 
+
+var SendBox = React.createClass({
+    changed: function(ev) {
+        this.setState({
+            inputHTML: emojione.toImage(ev.target.value)
+        });
+    },
+
+    replaceEmojiWithUnicode: function(el) {
+        var emojiElements = el.querySelectorAll(".emojione");
+
+        for(var i = 0, iLen = emojiElements.length; i < iLen; i++) {
+            var emojiElement = emojiElements[i];
+            var unicode = emojiElement.standby;
+            emojiElement.parentElement.replaceChild(document.createTextNode(unicode), emojiElement);
+        }
+    },
+
+    submit: function(ev) {
+        if(ev.key !== "Enter" || ev.shiftKey) return;
         ev.preventDefault();
 
         var inputBox = React.findDOMNode(this.refs.inputBox);
 
+        this.replaceEmojiWithUnicode(inputBox);
+
         var messagePlaintext = inputBox.innerText.trim();
         var messageHTML = inputBox.innerHTML.trim();
-        if(!messagePlaintext || !messageHTML) {
+        if(!messagePlaintext && !messageHTML) {
             return;
         }
 
-        inputBox.innerHTML = "";
+        this.setState({
+            inputHTML: ""
+        });
 
         this.props.onSendMessage(messagePlaintext, messageHTML);
     },
+
+    getInitialState: function() {
+        return {inputHTML: ""};
+    },
+
     render: function() {
         return (
             <div className="sendBox">
-                <span ref="inputBox" onKeyPress={this.submit} contentEditable={true}/>
+                <ContentEditable ref="inputBox" onChange={this.changed} onKeyPress={this.submit} html={this.state.inputHTML}/>
             </div>
         );
     }
 });
 
 var Message = React.createClass({
+    getBody: function() {
+        if(this.props.message.body === this.lastBody) return this.renderedBody;
+
+        var body = escapeTextContentForBrowser(this.props.message.body);
+        this.renderedBody = emojione.unicodeToImage(body);
+        this.lastBody = this.props.message.body;
+
+        return this.renderedBody;
+    },
+
     render: function() {
         var avatar;
         if(this.props.message.incoming) {
@@ -60,11 +103,13 @@ var Message = React.createClass({
             }
         }
 
+        var body = this.getBody();
+
         return (
             <li className={"message"+(!this.props.message.incoming ? " sent" : "")}>
                 {avatar}
                 <span>
-                    <p>{this.props.message.body}</p>
+                    <p dangerouslySetInnerHTML={{__html: body}}/>
                     <div className="info">
                         <TimeAgo time={this.props.message.time} />
                     </div>

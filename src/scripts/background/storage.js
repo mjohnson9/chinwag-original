@@ -93,8 +93,21 @@ export default class Store extends events.EventEmitter {
 
 	// Messages
 
-	getMessages(jid) {
-		return this.db_.message.query('conversation').only(jid).execute();
+	getMessages(jid, limit) {
+		var promise = this.db_.message.query('conversation').only(jid).desc().execute();
+
+		console.log('limit:', limit);
+		if(limit) {
+			promise = promise.then((messages) => {
+				return messages.slice(0, limit);
+			});
+		}
+
+		promise = promise.then((messages) => {
+			return messages.reverse();
+		});
+
+		return promise;
 	}
 
 	addMessage(msg) {
