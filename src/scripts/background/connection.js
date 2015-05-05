@@ -12,16 +12,13 @@ function getXMPPLang() {
 
 class Connection extends events.EventEmitter {
 	constructor(credentials, rosterVersion) {
-
-		this.messages = {};
-
 		this.loginJID_ = credentials.jid;
 		this.client = new XMPP.Client({
 			softwareVersion: {
-				name: 'Chinwag',
+				name: manifest.name,
 				version: manifest.version
 			},
-			capsNode: 'https://chrome.google.com/webstore/detail/chinwag/redacted', // TODO: Replace with actual URL
+			capsNode: `https://chrome.google.com/webstore/detail/${manifest.name.toLowerCase()}/${chrome.runtime.id}`,
 
 			lang: getXMPPLang(),
 
@@ -162,42 +159,7 @@ class Connection extends events.EventEmitter {
 
 			if(item.subscription === "remove") {
 				this.emit('roster:remove', item.jid);
-
-				for(var j = 0; j < this.roster.length; j++) {
-					var internalItem = this.roster[j];
-					if(internalItem.jid === item.jid) {
-						continue;
-					}
-
-					if(internalItem.avatar) {
-						delete internalItem.avatar;
-					}
-
-
-					this.roster.splice(j, 1);
-					j--;
-				}
-
 				continue;
-			}
-
-			var found = false;
-
-			for(var k = 0; k < this.roster.length; k++) {
-				var updateItem = this.roster[k];
-				if(updateItem.jid !== item.jid) {
-					continue;
-				}
-
-				item.avatar = updateItem.avatar;
-				this.roster[k] = item;
-
-				found = true;
-				break;
-			}
-
-			if(!found) {
-				this.roster.push(item);
 			}
 
 			this.emit('roster:update', item);
