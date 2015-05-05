@@ -7,7 +7,7 @@ ENVIRONMENT=development
 BROWSERIFY=./node_modules/.bin/browserify
 
 git_sha=$(shell git rev-parse --verify HEAD)
-BROWSERIFY_FLAGS=--debug --fast --extension .jsx -t es6ify -t [ reactify --extension jsx ] -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
+BROWSERIFY_FLAGS=--debug --fast --extension .jsx  -t [ reactify --es6 --extension jsx ] -t es6ify -t [ envify --GIT_SHA $(git_sha) --NODE_ENV $(ENVIRONMENT) ]
 
 LESSC=./node_modules/.bin/lessc
 LESSC_FLAGS=--clean-css="--s0 --compatibility='*'" --autoprefix="last 2 Chrome versions"
@@ -28,7 +28,7 @@ LIBS=$(shell find $(SRC_DIR)/scripts/lib -type f -iname '*.js' -or -iname '*.jsx
 STYLES=$(SRC_DIR)/styles/chat.less $(SRC_DIR)/styles/roster.less $(SRC_DIR)/styles/signin.less
 
 
-.PHONY: all clean
+.PHONY: all clean test
 
 entrypoint_bundles_part1=$(ENTRYPOINTS:%.js=%.bundle.js)
 entrypoint_bundles_part2=$(entrypoint_bundles_part1:%.jsx=%.bundle.js)
