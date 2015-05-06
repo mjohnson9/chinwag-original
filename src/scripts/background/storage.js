@@ -96,7 +96,6 @@ export default class Store extends events.EventEmitter {
 	getMessages(jid, limit) {
 		var promise = this.db_.message.query('conversation').only(jid).desc().execute();
 
-		console.log('limit:', limit);
 		if(limit) {
 			promise = promise.then((messages) => {
 				return messages.slice(0, limit);

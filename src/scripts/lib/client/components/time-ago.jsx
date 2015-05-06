@@ -125,7 +125,6 @@ var TimeAgo = React.createClass({
         this.cancelClock();
     },
     componentWillReceiveProps: function(newProps) {
-        //console.warn('[time-ago]', 'componentWillReceiveProps');
         var shouldClock = false,
             shouldTimestamp = false;
         if(newProps.time !== this.props.time) {

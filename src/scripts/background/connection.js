@@ -170,11 +170,9 @@ class Connection extends events.EventEmitter {
 
 	avatarReceived(stanza) {
 		if(stanza.source !== 'pubsub') {
-			console.warn('ignoring non-pubsub avatar:', stanza);
+			console.warn('Ignored avatar (not from pubsub):', stanza);
 			return;
 		}
-
-		console.info('avatar received:', stanza);
 
 		var user = stanza.jid.bare;
 
@@ -255,7 +253,7 @@ class Connection extends events.EventEmitter {
 
 	handleMessage(incoming, stanza) {
 		if(!stanza.body) {
-			console.warn('message unhandled:', incoming, stanza);
+			console.warn('Ignored message:', incoming ? '(incoming)' : '(outgoing)', stanza);
 			// chat state or other marker message
 			return;
 		}

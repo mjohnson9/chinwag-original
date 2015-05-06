@@ -184,8 +184,6 @@ class BackgroundPage {
 	}
 
 	initialStorageRetrieve(objects) {
-		console.info('initialStorageRetrieve:', objects);
-
 	    if(objects.credentials) {
 	        for(var propertyName in objects.credentials) {
 	            if(!objects.credentials.hasOwnProperty(propertyName)) {
