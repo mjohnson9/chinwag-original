@@ -44,6 +44,7 @@ var SendBox = React.createClass({
         for(var i = 0, iLen = emojiElements.length; i < iLen; i++) {
             var emojiElement = emojiElements[i];
             var unicode = emojiElement.standby;
+            if(!unicode) unicode = emojiElement.alt;
             emojiElement.parentElement.replaceChild(document.createTextNode(unicode), emojiElement);
         }
     },

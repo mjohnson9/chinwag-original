@@ -14,16 +14,32 @@ var ContentEditable = React.createClass({
     },
 
     shouldComponentUpdate: function(nextProps){
+        console.debug('shouldComponentUpdate');
         return nextProps.html !== this.getDOMNode().innerHTML;
     },
 
+    moveCursorToEnd: function() {
+        var range = document.createRange();
+        range.selectNodeContents(this.getDOMNode());
+        range.collapse(false);
+
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        console.info('Moved cursor to end of ContentEditable');
+    },
+
     componentDidUpdate: function() {
+        console.debug('componentDidUpdate');
         if(this.props.html !== this.getDOMNode().innerHTML) {
            this.getDOMNode().innerHTML = this.props.html;
         }
+       setTimeout(this.moveCursorToEnd, 1);
     },
 
     emitChange: function(evt) {
+        console.debug('emitChange');
         if(!this.props.onChange) return;
 
         var html = this.getDOMNode().innerHTML;
