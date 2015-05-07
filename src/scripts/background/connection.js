@@ -169,12 +169,28 @@ class Connection extends events.EventEmitter {
 	}
 
 	avatarReceived(stanza) {
-		if(stanza.source !== 'pubsub') {
-			console.warn('Ignored avatar (not from pubsub):', stanza);
-			return;
+		if(stanza.source != 'pubsub') return; // Right now, pubsub is the only one that we can get enough metadata from.
+
+		var jid = stanza.jid.bare;
+
+		var avatars = [];
+
+		for(var i = 0, iLen = stanza.avatars.length; i < iLen; i++) {
+			var avatar = stanza.avatars[i];
+			avatars.push({
+				source: stanza.source,
+				mimeType: avatar.type,
+
+				width: parseInt(avatar.width),
+				height: parseInt(avatar.height),
+
+				id: avatar.id
+			});
 		}
 
-		var user = stanza.jid.bare;
+		this.emit('avatar:list', jid, avatars);
+
+		/*var user = stanza.jid.bare;
 
 		var found = false;
 		var rosterItem;
@@ -216,10 +232,51 @@ class Connection extends events.EventEmitter {
 
 		console.debug('avatar to fetch:', avatarToFetch);
 
-		if(avatarToFetch !== undefined) this.client.getAvatar(user, avatarToFetch.id, this.avatarFetched.bind(this, avatarToFetch.type));
+		if(avatarToFetch !== undefined) this.client.getAvatar(user, avatarToFetch.id, this.avatarFetched.bind(this, avatarToFetch.type));*/
 	}
 
-	avatarFetched(mimeType, _, stanza) {
+	fetchAvatarPubsub(jid, info) {
+		return new Promise((resolve, reject) => {
+			this.client.getAvatar(jid, info.id, (_, stanza) => {
+				resolve(this.base64toBlob_(stanza.pubsub.retrieve.item.avatarData, info.mimeType));
+			});
+		});
+	}
+
+	fetchAvatar(jid, info) {
+		switch(info.source) {
+		case 'pubsub':
+			return this.fetchAvatarPubsub(jid, info);
+		default:
+			throw new Error(`Unknown avatar source: ${source}`);
+		}
+	}
+
+	base64toBlob_(b64Data, contentType, sliceSize) {
+		contentType = contentType || '';
+		sliceSize = sliceSize || 512;
+
+		var byteCharacters = atob(b64Data);
+		var byteArrays = [];
+
+		for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+			var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+			var byteNumbers = new Array(slice.length);
+			for (var i = 0; i < slice.length; i++) {
+				byteNumbers[i] = slice.charCodeAt(i);
+			}
+
+			var byteArray = new Uint8Array(byteNumbers);
+
+			byteArrays.push(byteArray);
+		}
+
+		var blob = new Blob(byteArrays, {type: contentType});
+		return blob;
+	}
+
+	/*avatarFetched(mimeType, _, stanza) {
 		console.debug('avatar fetched:', mimeType, stanza);
 		var user = stanza.from.bare;
 
@@ -249,7 +306,7 @@ class Connection extends events.EventEmitter {
 		if(!found) {
 			return;
 		}
-	}
+	}*/
 
 	handleMessage(incoming, stanza) {
 		if(!stanza.body) {

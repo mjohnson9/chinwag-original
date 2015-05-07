@@ -8,6 +8,8 @@ export default class Store extends events.EventEmitter {
 
 		this.ready = false;
 
+		this.avatarCache = {};
+
 		db.open({
 			server: 'chinwag',
 			version: Date.now(),
@@ -19,6 +21,10 @@ export default class Store extends events.EventEmitter {
 
 				roster: {
 					key: {keyPath: 'jid'}
+				},
+
+				avatar: {
+					key: {keyPath: 'id'}
 				},
 
 				conversation: {
@@ -41,6 +47,8 @@ export default class Store extends events.EventEmitter {
 	// Global
 
 	clear() {
+		this.avatarCache = {};
+
 		return Promise.all([
 			this.db_.clear('settings'),
 			this.db_.clear('roster'),
@@ -69,12 +77,71 @@ export default class Store extends events.EventEmitter {
 		return this.db_.roster.query().all().execute();
 	}
 
+	getRosterItem(jid) {
+		return this.db_.roster.get(jid);
+	}
+
 	setRosterItem(item) {
 		return this.db_.roster.update(item);
 	}
 
+	setRosterAvatar(jid, avatarID) {
+		return this.db_.roster.get(jid).then((rosterItem) => {
+			rosterItem.avatar = avatarID;
+			return this.setRosterItem(rosterItem);
+		});
+	}
+
 	removeRosterItem(jid) {
 		return this.db_.roster.remove(jid);
+	}
+
+	// Avatar
+
+	getAvatar(id) {
+		return this.db_.avatar.get(id).then(obj => { return obj ? obj.avatar : undefined; });
+	}
+
+	getAvatarURL(id) {
+		if(!this.avatarCache[id]) {
+			this.avatarCache[id] = this.getAvatar(id).then((blob) => {
+				var url = window.URL.createObjectURL(blob);
+
+				return url;
+			});
+		}
+
+		return this.avatarCache[id];
+	}
+
+	addAvatar(id, data) {
+		var p = this.db_.avatar.update({id: id, avatar: data});
+
+		p.then(() => {
+			if(this.avatarCache[id]) {
+				this.avatarCache[id].then((url) => {
+					window.URL.revokeObjectURL(url);
+				});
+			}
+			delete this.avatarCache[id];
+		})
+
+		return p;
+	}
+
+	removeAvatar(id) {
+		var p = this.db_.avatar.remove(id);
+
+		p.then(() => {
+			if(this.avatarCache[id]) {
+				this.avatarCache[id].then((url) => {
+					window.URL.revokeObjectURL(url);
+				});
+			}
+			delete this.avatarCache[id];
+		});
+
+		return p;
 	}
 
 	// Conversations

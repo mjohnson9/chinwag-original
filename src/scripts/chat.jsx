@@ -98,7 +98,7 @@ var Message = React.createClass({
         var avatar;
         if(this.props.message.incoming) {
             if(this.props.rosterEntry.avatar) {
-                avatar = <img className="avatar" src={this.props.rosterEntry.avatar.url} />;
+                avatar = <img className="avatar" src={this.props.rosterEntry.avatar} />;
             } else {
                 avatar = <PersonIcon className="avatar" />;
             }
