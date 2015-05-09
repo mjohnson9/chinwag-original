@@ -5,6 +5,7 @@ import Connection from './connection';
 import IPCHandler from './ipc';
 import Storage from './storage';
 import * as promiseUtil from '../lib/promise';
+import common from '../lib/common';
 import windows from '../lib/windows';
 
 class ipcMethods extends BoundClass {
@@ -26,6 +27,10 @@ class ipcMethods extends BoundClass {
 		return !this.page.requiresAuth;
 	}
 
+	chatOpened(connection, jid) {
+		return this.page.conversationOpened(jid);
+	}
+
 	authenticate(connection, jid, password) {
 		this.page.authenticate(jid, password);
 	}
@@ -36,6 +41,123 @@ class ipcMethods extends BoundClass {
 
 	sendMessage(connection, jid, message) {
 		return this.page.sendMessage(jid, message);
+	}
+}
+
+class NotificationHandler {
+	constructor(backgroundPage) {
+		super();
+
+		chrome.notifications.onClicked.addListener(this.notificationClicked.bind(this));
+		chrome.notifications.onClosed.addListener(this.notificationClosed.bind(this));
+
+		this.page = backgroundPage;
+	}
+
+	notificationClosed(id, byUser) {
+		if(!byUser) return;
+		if(!id.startsWith("conversation:")) return;
+
+		var jid = id.substr(13);
+
+		this.page.storage.touchConversationViewed(jid).then((conversation) => {
+			return this.updateConversationNotification(jid, undefined, conversation[0]);
+		});
+	}
+
+	notificationClicked(id) {
+		if(!id.startsWith("conversation:")) return;
+
+		var jid = id.substr(13);
+
+		windows.chat(jid);
+	}
+
+	updateConversationNotification(jid, rosterItem=undefined, conversation=undefined) {
+		console.trace('updateConversationNotification', jid, rosterItem, conversation);
+
+		if(!rosterItem) rosterItem = this.page.storage.getRosterItem(jid);
+		else rosterItem = Promise.resolve(rosterItem);
+
+		if(!conversation) conversation = this.page.storage.getConversation(jid);
+		else conversation = Promise.resolve(conversation);
+
+		return Promise.all([rosterItem, conversation]).then(([rosterItem, conversation]) => {
+			var name, avatarID;
+			if(!rosterItem) {
+				name = Promise.resolve(jid.split("@", 1)[0]);
+				avatarID = undefined;
+			} else {
+				name = Promise.resolve(common.displayName(rosterItem));
+				avatarID = rosterItem.avatar;
+			}
+
+			var avatarPromise;
+			if(!avatarID) {
+				avatarPromise = Promise.resolve(undefined);
+			} else {
+				avatarPromise = this.page.storage.getAvatarURL(avatarID);
+			}
+
+			var lastViewed;
+			if(conversation && conversation.lastViewed) lastViewed = conversation.lastViewed;
+
+			if(!lastViewed) {
+				return Promise.all([name, this.page.storage.getMessages(jid, 10), avatarPromise]);
+			}
+
+			return Promise.all([name, this.page.storage.getMessagesSince(jid, lastViewed, 10), avatarPromise]);
+		}).then(([name, messages, avatarUrl]) => {
+			if(!avatarUrl) avatarUrl = "icons/icon-128.png";
+
+			if(messages.length == 0) {
+				return new Promise((resolve, reject) => {
+					chrome.notifications.clear(`conversation:${jid}`, resolve);
+				});
+			}
+
+			if(messages.length == 1) {
+				var message = messages[0];
+				return new Promise((resolve, reject) => {
+					chrome.notifications.create(`conversation:${jid}`, {
+						type: "basic",
+						isClickable: true,
+
+						iconUrl: avatarUrl,
+						title: name,
+						eventTime: message.time,
+
+						message: message.body
+					}, resolve);
+				});
+			}
+
+			var items = [];
+			for(var i = 0, iLen = messages.length; i < iLen; i++) {
+				var message = messages[i];
+
+				items.push({
+					title: "",
+					message: message.body
+				});
+			}
+
+			var eventTime = messages[messages.length-1].time;
+
+			return new Promise((resolve, reject) => {
+				chrome.notifications.create(`conversation:${jid}`, {
+					type: "list",
+					isClickable: true,
+
+					iconUrl: avatarUrl,
+					title: name,
+					eventTime: eventTime,
+
+					message: "",
+					items: items
+				}, resolve);
+			});
+		});
 	}
 }
 
@@ -57,9 +179,11 @@ class BackgroundPage {
 
 		this.ipcHandler = new IPCHandler(new ipcMethods(this));
 
+		this.notificationHandler = new NotificationHandler(this);
+
 		this.storage = new Storage();
 		this.storagePromise = new Promise((resolve, reject) => {
-			this.storage.once('ready', () => resolve())
+			this.storage.once('ready', () => resolve());
 		});
 
 		this.createClient();
@@ -108,6 +232,7 @@ class BackgroundPage {
 		this.client.on('roster:update', this.rosterUpdated.bind(this, true));
 		this.client.on('roster:remove', this.rosterUpdated.bind(this, false));
 		this.client.on('roster:version', this.newRosterVersion.bind(this));
+		this.client.on('roster:received', this.rosterReceived.bind(this));
 		this.client.on('avatar:list', this.avatarListReceived.bind(this));
 		this.client.on('message', this.handleMessage.bind(this));
 		this.client.on('authResult', this.authResult.bind(this));
@@ -204,6 +329,17 @@ class BackgroundPage {
 		});
 	}
 
+	rosterReceived() {
+		this.storagePromise.then(() => {
+			return this.storage.getRosterItems();
+		}).then((rosterItems) => {
+			for(var i = 0, iLen = rosterItems.length; i < iLen; i++) {
+				var rosterItem = rosterItems[i];
+				this.notificationHandler.updateConversationNotification(rosterItem.jid, rosterItem);
+			}
+		});
+	}
+
 	pickFavoredAvatar(avatars) {
 		// Grab the first avatar that fits our image whitelist.
 		for(var i = 0, iLen = avatars.length; i < iLen; i++) {
@@ -254,10 +390,18 @@ class BackgroundPage {
 
 		this.storagePromise.then(() => {
 			return this.storage.addMessage(msg).then((msgID) => {
-				return this.getMessageHistory(jid).then((messages) => {
+				return Promise.all([this.getMessageHistory(jid), this.storage.touchConversationMessage(jid, msg.time)]).then(([messages, conversation]) => {
 					this.ipcHandler.broadcast('messages:'+jid, 'messagesUpdated', messages);
+
+					return this.notificationHandler.updateConversationNotification(jid, undefined, conversation[0]);
 				});
 			});
+		});
+	}
+
+	conversationOpened(jid) {
+		return this.storage.touchConversationViewed(jid).then((conversation) => {
+			return this.notificationHandler.updateConversationNotification(jid, undefined, conversation[0]);
 		});
 	}
 

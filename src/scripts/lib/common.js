@@ -23,5 +23,14 @@ module.exports = {
 		return args;
 	},
 
+	displayName: function(rosterEntry) {
+	    var name = rosterEntry.name;
+	    if(!name) {
+	        name = rosterEntry.jid.split('@', 1)[0];
+	    }
+
+	    return name;
+	},
+
 	uuid: guid
 };

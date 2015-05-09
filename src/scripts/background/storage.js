@@ -37,7 +37,8 @@ export default class Store extends events.EventEmitter {
 				message: {
 					key: {keyPath: 'id', autoIncrement: true},
 					indexes: {
-						conversation: {}
+						conversation: {},
+						time: {}
 					}
 				}
 			}
@@ -124,7 +125,7 @@ export default class Store extends events.EventEmitter {
 				});
 			}
 			delete this.avatarCache[id];
-		})
+		});
 
 		return p;
 	}
@@ -150,8 +151,30 @@ export default class Store extends events.EventEmitter {
 		return this.db_.conversation.query('lastMessage').all().desc().execute();
 	}
 
-	touchConversation(jid, lastMessage=Date.now()) {
-		return this.db_.conversation.update({jid: jid, lastMessage: lastMessage});
+	getConversation(jid) {
+		return this.db_.conversation.get(jid);
+	}
+
+	touchConversationMessage(jid, lastMessage=Date.now()) {
+		if(lastMessage instanceof Date) lastMessage = lastMessage.getTime();
+
+		return this.db_.conversation.get(jid).then((conv) => {
+			if(!conv) conv = {jid: jid};
+			else if(conv.lastMessage && conv.lastMessage >= lastMessage) return;
+			conv.lastMessage = lastMessage;
+			return this.db_.conversation.update(conv);
+		});
+	}
+
+	touchConversationViewed(jid, lastViewed=Date.now()) {
+		if(lastViewed instanceof Date) lastViewed = lastViewed.getTime();
+
+		return this.db_.conversation.get(jid).then((conv) => {
+			if(!conv) conv = {jid: jid};
+			else if(conv.lastViewed && conv.lastViewed >= lastViewed) return;
+			conv.lastViewed = lastViewed;
+			return this.db_.conversation.update(conv);
+		});
 	}
 
 	removeConversation(jid) {
@@ -162,6 +185,23 @@ export default class Store extends events.EventEmitter {
 
 	getMessages(jid, limit) {
 		var promise = this.db_.message.query('conversation').only(jid).desc().execute();
+
+		if(limit) {
+			promise = promise.then((messages) => {
+				return messages.slice(0, limit);
+			});
+		}
+
+		promise = promise.then((messages) => {
+			return messages.reverse();
+		});
+
+		return promise;
+	}
+
+	getMessagesSince(jid, time, limit) {
+		var promise = this.db_.message.query('time').lowerBound(time, true).desc()
+		                              .filter('conversation', 'michael@johnson.computer').execute();
 
 		if(limit) {
 			promise = promise.then((messages) => {

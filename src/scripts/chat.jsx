@@ -131,6 +131,7 @@ var Chat = React.createClass({
 
         this.ipcConnection.sendMessage('subscribe', 'roster');
         this.ipcConnection.sendMessage('subscribe', 'messages:'+this.jid);
+        this.ipcConnection.sendMessage('chatOpened', this.jid);
         this.ipcConnection.call(this.rosterUpdated, 'getRoster');
         this.ipcConnection.call(this.messagesUpdated, 'getMessageHistory', this.jid);
     },
@@ -217,7 +218,7 @@ var Chat = React.createClass({
 
         return (
             <div className="chat">
-                <title>{clientCommon.displayName(this.state.rosterEntry)}</title>
+                <title>{common.displayName(this.state.rosterEntry)}</title>
                 <ul>{messages}</ul>
                 <SendBox onSendMessage={this.onSendMessage} />
             </div>

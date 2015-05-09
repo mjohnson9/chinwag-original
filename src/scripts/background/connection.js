@@ -140,6 +140,8 @@ class Connection extends events.EventEmitter {
 	initialRosterReceived(_, response) {
 		this.rosterReceived(response);
 
+		this.emit('roster:received');
+
 		this.client.sendPresence({
 			caps: this.client.disco.caps
 		});

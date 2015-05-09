@@ -3,6 +3,7 @@ require('./lib/error-reporting');
 var React = require('react');
 
 var clientCommon = require('./lib/client/common');
+var common = require('./lib/common');
 var IPCConnection = require('./lib/client/ipc');
 var windows = require('./lib/windows');
 var PersonIcon = require('./lib/client/components/person-icon');
@@ -26,7 +27,7 @@ var RosterItem = React.createClass({
 						{avatar}
 					</div>
 					<div className="content">
-						<div className="name">{clientCommon.displayName(this.props.entry)}</div>
+						<div className="name">{common.displayName(this.props.entry)}</div>
 					</div>
 				</div>
 				<div className="divider" />
