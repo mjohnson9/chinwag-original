@@ -76,8 +76,6 @@ class NotificationHandler {
 	}
 
 	updateConversationNotification(jid, rosterItem=undefined, conversation=undefined) {
-		console.trace('updateConversationNotification', jid, rosterItem, conversation);
-
 		if(!rosterItem) rosterItem = this.page.storage.getRosterItem(jid);
 		else rosterItem = Promise.resolve(rosterItem);
 
@@ -378,12 +376,21 @@ class BackgroundPage {
 	handleMessage(msg) {
 		var jid = msg.incoming ? msg.from : msg.to;
 
+		var chatWindowPromise = new Promise((resolve, reject) => {
+			windows.findChat(jid, resolve);
+		});
+
 		this.storagePromise.then(() => {
 			return this.storage.addMessage(msg).then((msgID) => {
-				return Promise.all([this.getMessageHistory(jid), this.storage.touchConversationMessage(jid, msg.time)]).then(([messages, conversation]) => {
+				return Promise.all([this.getMessageHistory(jid), this.storage.touchConversationMessage(jid, msg.time), chatWindowPromise]).then(([messages, [conversation], chatWindow]) => {
 					this.ipcHandler.broadcast('messages:'+jid, 'messagesUpdated', messages);
 
-					return this.notificationHandler.updateConversationNotification(jid, undefined, conversation[0]);
+					if(chatWindow && chatWindow.focused) {
+						conversation.lastViewed = Date.now();
+						this.storage.touchConversationViewed(jid);
+					}
+
+					return this.notificationHandler.updateConversationNotification(jid, undefined, conversation);
 				});
 			});
 		});
