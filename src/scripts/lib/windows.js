@@ -73,6 +73,10 @@ module.exports = {
 		findWindow('/chat.html?jid='+encodeURIComponent(jid), false, this.chat_.bind(this, jid, cb));
 	},
 
+	findChat: function(jid, cb) {
+		findWindow('/chat.html?jid='+encodeURIComponent(jid), false, cb);
+	},
+
 	signIn_: function(cb, result) {
 		if(!result) {
 			chrome.windows.create({

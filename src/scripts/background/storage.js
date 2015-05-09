@@ -8,6 +8,8 @@ export default class Store extends events.EventEmitter {
 
 		this.ready = false;
 
+		this.avatarCache = {};
+
 		db.open({
 			server: 'chinwag',
 			version: Date.now(),
@@ -21,6 +23,10 @@ export default class Store extends events.EventEmitter {
 					key: {keyPath: 'jid'}
 				},
 
+				avatar: {
+					key: {keyPath: 'id'}
+				},
+
 				conversation: {
 					key: {keyPath: 'jid'},
 					indexes: {
@@ -31,7 +37,8 @@ export default class Store extends events.EventEmitter {
 				message: {
 					key: {keyPath: 'id', autoIncrement: true},
 					indexes: {
-						conversation: {}
+						conversation: {},
+						time: {}
 					}
 				}
 			}
@@ -41,6 +48,8 @@ export default class Store extends events.EventEmitter {
 	// Global
 
 	clear() {
+		this.avatarCache = {};
+
 		return Promise.all([
 			this.db_.clear('settings'),
 			this.db_.clear('roster'),
@@ -69,12 +78,71 @@ export default class Store extends events.EventEmitter {
 		return this.db_.roster.query().all().execute();
 	}
 
+	getRosterItem(jid) {
+		return this.db_.roster.get(jid);
+	}
+
 	setRosterItem(item) {
 		return this.db_.roster.update(item);
 	}
 
+	setRosterAvatar(jid, avatarID) {
+		return this.db_.roster.get(jid).then((rosterItem) => {
+			rosterItem.avatar = avatarID;
+			return this.setRosterItem(rosterItem);
+		});
+	}
+
 	removeRosterItem(jid) {
 		return this.db_.roster.remove(jid);
+	}
+
+	// Avatar
+
+	getAvatar(id) {
+		return this.db_.avatar.get(id).then(obj => { return obj ? obj.avatar : undefined; });
+	}
+
+	getAvatarURL(id) {
+		if(!this.avatarCache[id]) {
+			this.avatarCache[id] = this.getAvatar(id).then((blob) => {
+				var url = window.URL.createObjectURL(blob);
+
+				return url;
+			});
+		}
+
+		return this.avatarCache[id];
+	}
+
+	addAvatar(id, data) {
+		var p = this.db_.avatar.update({id: id, avatar: data});
+
+		p.then(() => {
+			if(this.avatarCache[id]) {
+				this.avatarCache[id].then((url) => {
+					window.URL.revokeObjectURL(url);
+				});
+			}
+			delete this.avatarCache[id];
+		});
+
+		return p;
+	}
+
+	removeAvatar(id) {
+		var p = this.db_.avatar.remove(id);
+
+		p.then(() => {
+			if(this.avatarCache[id]) {
+				this.avatarCache[id].then((url) => {
+					window.URL.revokeObjectURL(url);
+				});
+			}
+			delete this.avatarCache[id];
+		});
+
+		return p;
 	}
 
 	// Conversations
@@ -83,8 +151,30 @@ export default class Store extends events.EventEmitter {
 		return this.db_.conversation.query('lastMessage').all().desc().execute();
 	}
 
-	touchConversation(jid, lastMessage=Date.now()) {
-		return this.db_.conversation.update({jid: jid, lastMessage: lastMessage});
+	getConversation(jid) {
+		return this.db_.conversation.get(jid);
+	}
+
+	touchConversationMessage(jid, lastMessage=Date.now()) {
+		if(lastMessage instanceof Date) lastMessage = lastMessage.getTime();
+
+		return this.db_.conversation.get(jid).then((conv) => {
+			if(!conv) conv = {jid: jid};
+			else if(conv.lastMessage && conv.lastMessage >= lastMessage) return;
+			conv.lastMessage = lastMessage;
+			return this.db_.conversation.update(conv);
+		});
+	}
+
+	touchConversationViewed(jid, lastViewed=Date.now()) {
+		if(lastViewed instanceof Date) lastViewed = lastViewed.getTime();
+
+		return this.db_.conversation.get(jid).then((conv) => {
+			if(!conv) conv = {jid: jid};
+			else if(conv.lastViewed && conv.lastViewed >= lastViewed) return;
+			conv.lastViewed = lastViewed;
+			return this.db_.conversation.update(conv);
+		});
 	}
 
 	removeConversation(jid) {
@@ -93,10 +183,38 @@ export default class Store extends events.EventEmitter {
 
 	// Messages
 
-	getMessages(jid, limit) {
-		var promise = this.db_.message.query('conversation').only(jid).desc().execute();
+	getMessages(jid, limit, incomingOnly=false) {
+		var query = this.db_.message.query('conversation').only(jid).desc();
 
-		console.log('limit:', limit);
+		if(incomingOnly) {
+			query = query.filter((m) => m.incoming);
+		}
+
+		var promise = query.execute();
+
+		if(limit) {
+			promise = promise.then((messages) => {
+				return messages.slice(0, limit);
+			});
+		}
+
+		promise = promise.then((messages) => {
+			return messages.reverse();
+		});
+
+		return promise;
+	}
+
+	getMessagesSince(jid, time, limit, incomingOnly=false) {
+		var query = this.db_.message.query('time').lowerBound(time, true).desc()
+		                              .filter('conversation', 'michael@johnson.computer');
+
+		if(incomingOnly) {
+			query = query.filter((m) => m.incoming);
+		}
+
+		var promise = query.execute()
+
 		if(limit) {
 			promise = promise.then((messages) => {
 				return messages.slice(0, limit);

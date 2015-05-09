@@ -44,6 +44,7 @@ var SendBox = React.createClass({
         for(var i = 0, iLen = emojiElements.length; i < iLen; i++) {
             var emojiElement = emojiElements[i];
             var unicode = emojiElement.standby;
+            if(!unicode) unicode = emojiElement.alt;
             emojiElement.parentElement.replaceChild(document.createTextNode(unicode), emojiElement);
         }
     },
@@ -97,7 +98,7 @@ var Message = React.createClass({
         var avatar;
         if(this.props.message.incoming) {
             if(this.props.rosterEntry.avatar) {
-                avatar = <img className="avatar" src={this.props.rosterEntry.avatar.url} />;
+                avatar = <img className="avatar" src={this.props.rosterEntry.avatar} />;
             } else {
                 avatar = <PersonIcon className="avatar" />;
             }
@@ -130,6 +131,7 @@ var Chat = React.createClass({
 
         this.ipcConnection.sendMessage('subscribe', 'roster');
         this.ipcConnection.sendMessage('subscribe', 'messages:'+this.jid);
+        this.ipcConnection.sendMessage('chatOpened', this.jid);
         this.ipcConnection.call(this.rosterUpdated, 'getRoster');
         this.ipcConnection.call(this.messagesUpdated, 'getMessageHistory', this.jid);
     },
@@ -216,7 +218,7 @@ var Chat = React.createClass({
 
         return (
             <div className="chat">
-                <title>{clientCommon.displayName(this.state.rosterEntry)}</title>
+                <title>{common.displayName(this.state.rosterEntry)}</title>
                 <ul>{messages}</ul>
                 <SendBox onSendMessage={this.onSendMessage} />
             </div>
