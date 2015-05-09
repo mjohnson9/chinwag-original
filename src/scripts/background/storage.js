@@ -183,8 +183,14 @@ export default class Store extends events.EventEmitter {
 
 	// Messages
 
-	getMessages(jid, limit) {
-		var promise = this.db_.message.query('conversation').only(jid).desc().execute();
+	getMessages(jid, limit, incomingOnly=false) {
+		var query = this.db_.message.query('conversation').only(jid).desc();
+
+		if(incomingOnly) {
+			query = query.filter((m) => m.incoming);
+		}
+
+		var promise = query.execute();
 
 		if(limit) {
 			promise = promise.then((messages) => {
@@ -199,9 +205,15 @@ export default class Store extends events.EventEmitter {
 		return promise;
 	}
 
-	getMessagesSince(jid, time, limit) {
-		var promise = this.db_.message.query('time').lowerBound(time, true).desc()
-		                              .filter('conversation', 'michael@johnson.computer').execute();
+	getMessagesSince(jid, time, limit, incomingOnly=false) {
+		var query = this.db_.message.query('time').lowerBound(time, true).desc()
+		                              .filter('conversation', 'michael@johnson.computer');
+
+		if(incomingOnly) {
+			query = query.filter((m) => m.incoming);
+		}
+
+		var promise = query.execute()
 
 		if(limit) {
 			promise = promise.then((messages) => {

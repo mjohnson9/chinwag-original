@@ -60,8 +60,10 @@ class NotificationHandler {
 
 		var jid = id.substr(13);
 
-		this.page.storage.touchConversationViewed(jid).then((conversation) => {
-			return this.updateConversationNotification(jid, undefined, conversation[0]);
+		this.page.storagePromise.then(() => {
+			return this.page.storage.touchConversationViewed(jid).then((conversation) => {
+				return this.updateConversationNotification(jid, undefined, conversation[0]);
+			});
 		});
 	}
 
@@ -103,32 +105,16 @@ class NotificationHandler {
 			if(conversation && conversation.lastViewed) lastViewed = conversation.lastViewed;
 
 			if(!lastViewed) {
-				return Promise.all([name, this.page.storage.getMessages(jid, 10), avatarPromise]);
+				return Promise.all([name, this.page.storage.getMessages(jid, 10, true), avatarPromise]);
 			}
 
-			return Promise.all([name, this.page.storage.getMessagesSince(jid, lastViewed, 10), avatarPromise]);
+			return Promise.all([name, this.page.storage.getMessagesSince(jid, lastViewed, 10, true), avatarPromise]);
 		}).then(([name, messages, avatarUrl]) => {
 			if(!avatarUrl) avatarUrl = "icons/icon-128.png";
 
 			if(messages.length == 0) {
 				return new Promise((resolve, reject) => {
 					chrome.notifications.clear(`conversation:${jid}`, resolve);
-				});
-			}
-
-			if(messages.length == 1) {
-				var message = messages[0];
-				return new Promise((resolve, reject) => {
-					chrome.notifications.create(`conversation:${jid}`, {
-						type: "basic",
-						isClickable: true,
-
-						iconUrl: avatarUrl,
-						title: name,
-						eventTime: message.time,
-
-						message: message.body
-					}, resolve);
 				});
 			}
 
@@ -306,20 +292,24 @@ class BackgroundPage {
 
 	rosterUpdated(add, rosterItem) {
 		if(!add) {
-			this.storage.getRosterItem(rosterItem).then((rosterItem) => {
-				if(rosterItem.avatar) {
-					this.storage.removeAvatar(rosterItem.avatar);
-				}
+			this.storagePromise.then(() => {
+				this.storage.getRosterItem(rosterItem).then((rosterItem) => {
+					if(rosterItem.avatar) {
+						this.storage.removeAvatar(rosterItem.avatar);
+					}
 
-				return this.storage.removeRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
+					return this.storage.removeRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
+				});
 			});
 			return;
 		}
 
-		this.storage.getRosterItem(rosterItem.jid).then((oldRosterItem) => {
-			if(oldRosterItem) rosterItem.avatar = oldRosterItem.avatar;
+		this.storagePromise.then(() => {
+			this.storage.getRosterItem(rosterItem.jid).then((oldRosterItem) => {
+				if(oldRosterItem) rosterItem.avatar = oldRosterItem.avatar;
 
-			return this.storage.setRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
+				return this.storage.setRosterItem(rosterItem).then(this.broadcastNewRoster_.bind(this));
+			});
 		});
 	}
 
@@ -400,8 +390,10 @@ class BackgroundPage {
 	}
 
 	conversationOpened(jid) {
-		return this.storage.touchConversationViewed(jid).then((conversation) => {
-			return this.notificationHandler.updateConversationNotification(jid, undefined, conversation[0]);
+		return this.storagePromise.then(() => {
+			return this.storage.touchConversationViewed(jid).then((conversation) => {
+				return this.notificationHandler.updateConversationNotification(jid, undefined, conversation[0]);
+			});
 		});
 	}
 
