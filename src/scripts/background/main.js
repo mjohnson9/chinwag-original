@@ -409,9 +409,9 @@ class BackgroundPage {
 		this.ipcHandler.broadcast('auth', 'authUpdated', success);
 	}
 
-	onInstalled(reason) {
-		if(reason === 'install') {
-			windows.roster();
+	onInstalled(info) {
+		if(info.reason === 'install') {
+			this.browserActionClicked();
 		}
 	}
 
