@@ -207,7 +207,7 @@ export default class Store extends events.EventEmitter {
 
 	getMessagesSince(jid, time, limit, incomingOnly=false) {
 		var query = this.db_.message.query('time').lowerBound(time, true).desc()
-		                              .filter('conversation', 'michael@johnson.computer');
+		                              .filter('conversation', jid);
 
 		if(incomingOnly) {
 			query = query.filter((m) => m.incoming);
@@ -237,6 +237,8 @@ export default class Store extends events.EventEmitter {
 			to: msg.to,
 
 			body: msg.body,
+
+			state: msg.state,
 
 			time: msg.time.getTime()
 		};

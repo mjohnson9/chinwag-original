@@ -68,6 +68,7 @@ class Connection extends events.EventEmitter {
 		this.client.use(require('stanza.io/lib/plugins/delayed'));
 		this.client.use(require('stanza.io/lib/plugins/forwarding'));
 		this.client.use(require('stanza.io/lib/plugins/carbons'));
+		this.client.use(require('stanza.io/lib/plugins/receipts'));
 
 		this.client.use(require('stanza.io/lib/plugins/pubsub'));
 		this.client.use(require('stanza.io/lib/plugins/avatar'));
@@ -106,6 +107,9 @@ class Connection extends events.EventEmitter {
 	sendMessage(to, body) {
 		this.client.sendMessage({
 			type: 'chat',
+
+			requestReceipt: true,
+
 			to: to,
 			body: body
 		});

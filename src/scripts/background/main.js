@@ -59,12 +59,6 @@ class NotificationHandler {
 		if(!id.startsWith("conversation:")) return;
 
 		var jid = id.substr(13);
-
-		this.page.storagePromise.then(() => {
-			return this.page.storage.touchConversationViewed(jid).then((conversation) => {
-				return this.updateConversationNotification(jid, undefined, conversation[0]);
-			});
-		});
 	}
 
 	notificationClicked(id) {
@@ -379,6 +373,8 @@ class BackgroundPage {
 		var chatWindowPromise = new Promise((resolve, reject) => {
 			windows.findChat(jid, resolve);
 		});
+
+		if(!msg.state) msg.state = msg.incoming ? 'received' : 'sent';
 
 		this.storagePromise.then(() => {
 			return this.storage.addMessage(msg).then((msgID) => {
